@@ -1759,7 +1759,8 @@ function renderMessages(items) {
         (m.attachments || []).length
           ? ""
           : "(Embed or content unavailable)"
-      )
+      ),
+      m.mentions || []
     );
 
     for (const attachment of m.attachments || []) {
@@ -2566,54 +2567,77 @@ connect();
 </style>
 
 <script>
-function renderDiscordText(container, content) {
+function renderDiscordText(container, content, mentions = []) {
   const text = String(content || "");
-  const pattern = /<(a?):([A-Za-z0-9_]+):(\d{15,22})>/g;
+  const users = new Map(
+    mentions.map(user => [String(user.id), user.name])
+  );
+
+  const pattern =
+    /<(a?):([A-Za-z0-9_]+):(\d{15,22})>|<@!?(\d{15,22})>/g;
+
   const matches = [...text.matchAll(pattern)];
 
   container.replaceChildren();
+
   container.classList.toggle(
     "emoji-only",
     matches.length > 0 &&
     matches.length <= 10 &&
+    matches.every(match => !match[4]) &&
     text.replace(pattern, "").trim() === ""
   );
 
   let position = 0;
 
   for (const match of matches) {
-    const [token, animated, name, id] = match;
-
     container.append(
       document.createTextNode(text.slice(position, match.index))
     );
 
-    const image = document.createElement("img");
-    image.className = "discord-custom-emoji";
-    image.alt = `:${name}:`;
-    image.title = `:${name}:`;
-    image.width = 22;
-    image.height = 22;
-    image.decoding = "async";
-    image.draggable = false;
+    const [, animated, emojiName, emojiId, userId] = match;
 
-    const base = `https://cdn.discordapp.com/emojis/${id}`;
-    image.src = `${base}.${animated ? "gif" : "png"}?size=96`;
+    if (userId) {
+      const mention = document.createElement("span");
+      const name = users.get(userId);
 
-    let triedStatic = !animated;
+      mention.className = "discord-mention";
+      mention.textContent = name ? `@${name}` : "@Unknown User";
+      mention.title = name ? `@${name}` : `Discord user ${userId}`;
 
-    image.onerror = () => {
-      if (!triedStatic) {
-        triedStatic = true;
-        image.src = `${base}.png?size=96`;
-        return;
-      }
+      container.append(mention);
+    } else {
+      const image = document.createElement("img");
 
-      image.replaceWith(document.createTextNode(`:${name}:`));
-    };
+      image.className = "discord-custom-emoji";
+      image.alt = `:${emojiName}:`;
+      image.title = `:${emojiName}:`;
+      image.width = 22;
+      image.height = 22;
+      image.decoding = "async";
+      image.draggable = false;
 
-    container.append(image);
-    position = match.index + token.length;
+      const base = `https://cdn.discordapp.com/emojis/${emojiId}`;
+      image.src = `${base}.${animated ? "gif" : "png"}?size=96`;
+
+      let triedStatic = !animated;
+
+      image.onerror = () => {
+        if (!triedStatic) {
+          triedStatic = true;
+          image.src = `${base}.png?size=96`;
+          return;
+        }
+
+        image.replaceWith(
+          document.createTextNode(`:${emojiName}:`)
+        );
+      };
+
+      container.append(image);
+    }
+
+    position = match.index + match[0].length;
   }
 
   container.append(
@@ -2625,6 +2649,14 @@ function renderDiscordText(container, content) {
   .play-area {
     position: relative;
     isolation: isolate;
+  }
+
+  .discord-mention {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(88, 101, 242, 0.25);
+    color: #c9cdfb;
+    font-weight: 600;
   }
 
   .play-area.arcade-locked > :not(#arcadeBoostGate) {
@@ -2692,6 +2724,8 @@ function renderDiscordText(container, content) {
   #boostGateButton:disabled {
     opacity: 0.6;
     cursor: wait;
+
+
   }
 </style>
 
