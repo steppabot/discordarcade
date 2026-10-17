@@ -35,7 +35,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/tecmosuperbowl.sfc",
-    "icon": "/images/tecmosuperbowl.png"
+    "icon": "/images/tecmosuperbowl.png",
     "subtitle": "SNES · PLATFORMER"
   }
 ]
