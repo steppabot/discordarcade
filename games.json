@@ -4,21 +4,21 @@
     "title": "2048",
     "url": "https://steppabot.github.io/2048/",
     "icon": "https://steppabot.github.io/2048/meta/apple-touch-icon.png",
-    "subtitle": "MERGE \u00b7 PUZZLE"
+    "subtitle": "MERGE · PUZZLE"
   },
   {
     "id": "hextris",
     "title": "Hextris",
     "url": "https://steppabot.github.io/hextris/",
     "icon": "https://steppabot.github.io/hextris/images/icons/apple-touch-180.png",
-    "subtitle": "ROTATE \u00b7 PUZZLE"
+    "subtitle": "ROTATE · PUZZLE"
   },
   {
     "id": "clumsy-bird",
     "title": "Clumsy Bird",
     "url": "https://steppabot.github.io/clumsy-bird/",
     "icon": "https://steppabot.github.io/clumsy-bird/data/img/touch-icon-iphone-retina.png",
-    "subtitle": "FLY \u00b7 DODGE"
+    "subtitle": "FLY · DODGE"
   },
   {
     "id": "supermarioworld",
@@ -36,6 +36,753 @@
     "core": "snes",
     "url": "/games/snes/tecmosuperbowl.sfc",
     "icon": "/images/tecmosuperbowl.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "actraiser",
+    "title": "ActRaiser",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/actraiser.sfc",
+    "icon": "/images/actraiser.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "aladdin",
+    "title": "Aladdin",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/aladdin.sfc",
+    "icon": "/images/aladdin.PNG",
     "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "axelay",
+    "title": "Axelay",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/axelay.sfc",
+    "icon": "/images/axelay.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "blackthorne",
+    "title": "Blackthorne",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/blackthorne.sfc",
+    "icon": "/images/blackthorne.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "breathoffire",
+    "title": "Breath of Fire",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/breathoffire.sfc",
+    "icon": "/images/breathoffire.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "breathoffireii",
+    "title": "Breath of Fire II",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/breathoffireii.sfc",
+    "icon": "/images/breathoffireii.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "chronotrigger",
+    "title": "Chrono Trigger",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/chronotrigger.sfc",
+    "icon": "/images/chronotrigger.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "contraiiithealienwars",
+    "title": "Contra III The Alien Wars",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/contraiiithealienwars.sfc",
+    "icon": "/images/contraiiithealienwars.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "cybernator",
+    "title": "Cybernator",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/cybernator.sfc",
+    "icon": "/images/cybernator.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "demonscrest",
+    "title": "Demons Crest",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/demonscrest.sfc",
+    "icon": "/images/demonscrest.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "donkeykongcountry",
+    "title": "Donkey Kong Country",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/donkeykongcountry.sfc",
+    "icon": "/images/donkeykongcountry.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "donkeykongcountry2diddyskongquest",
+    "title": "Donkey Kong Country 2 Diddys Kong Quest",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/donkeykongcountry2diddyskongquest.sfc",
+    "icon": "/images/donkeykongcountry2diddyskongquest.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "donkeykongcountry3dixiekongsdoubletrouble",
+    "title": "Donkey Kong Country 3 Dixie Kongs Double Trouble",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/donkeykongcountry3dixiekongsdoubletrouble.sfc",
+    "icon": "/images/donkeykongcountry3dixiekongsdoubletrouble.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "earthbound",
+    "title": "EarthBound",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/earthbound.sfc",
+    "icon": "/images/earthbound.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "earthwormjim",
+    "title": "Earthworm Jim",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/earthwormjim.sfc",
+    "icon": "/images/earthwormjim.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "finalfantasyii",
+    "title": "Final Fantasy II",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/finalfantasyii.sfc",
+    "icon": "/images/finalfantasyii.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "finalfantasyiii",
+    "title": "Final Fantasy III",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/finalfantasyiii.sfc",
+    "icon": "/images/finalfantasyiii.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "fzero",
+    "title": "F Zero",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/fzero.sfc",
+    "icon": "/images/fzero.PNG",
+    "subtitle": "SNES · RACING"
+  },
+  {
+    "id": "gooftroop",
+    "title": "Goof Troop",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/gooftroop.sfc",
+    "icon": "/images/gooftroop.PNG",
+    "subtitle": "SNES · ADVENTURE"
+  },
+  {
+    "id": "gradiusiii",
+    "title": "Gradius III",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/gradiusiii.sfc",
+    "icon": "/images/gradiusiii.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "haganethefinalconflict",
+    "title": "Hagane The Final Conflict",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/haganethefinalconflict.sfc",
+    "icon": "/images/haganethefinalconflict.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "harvestmoon",
+    "title": "Harvest Moon",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/harvestmoon.sfc",
+    "icon": "/images/harvestmoon.PNG",
+    "subtitle": "SNES · SIMULATION"
+  },
+  {
+    "id": "illusionofgaia",
+    "title": "Illusion of Gaia",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/illusionofgaia.sfc",
+    "icon": "/images/illusionofgaia.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "internationalsuperstarsoccerdeluxe",
+    "title": "International Superstar Soccer Deluxe",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/internationalsuperstarsoccerdeluxe.sfc",
+    "icon": "/images/internationalsuperstarsoccerdeluxe.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "kengriffeyjrpresentsmajorleaguebaseball",
+    "title": "Ken Griffey Jr Presents Major League Baseball",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/kengriffeyjrpresentsmajorleaguebaseball.sfc",
+    "icon": "/images/kengriffeyjrpresentsmajorleaguebaseball.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "killerinstinct",
+    "title": "Killer Instinct",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/killerinstinct.sfc",
+    "icon": "/images/killerinstinct.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "kirbysuperstar",
+    "title": "Kirby Super Star",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/kirbysuperstar.sfc",
+    "icon": "/images/kirbysuperstar.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "kirbysavalanche",
+    "title": "Kirbys Avalanche",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/kirbysavalanche.sfc",
+    "icon": "/images/kirbysavalanche.PNG",
+    "subtitle": "SNES · PUZZLE"
+  },
+  {
+    "id": "kirbysdreamcourse",
+    "title": "Kirbys Dream Course",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/kirbysdreamcourse.sfc",
+    "icon": "/images/kirbysdreamcourse.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "kirbysdreamland3",
+    "title": "Kirbys Dream Land 3",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/kirbysdreamland3.sfc",
+    "icon": "/images/kirbysdreamland3.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "thelegendofthemysticalninja",
+    "title": "The Legend of the Mystical Ninja",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/thelegendofthemysticalninja.sfc",
+    "icon": "/images/thelegendofthemysticalninja.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "thelegendofzeldaalinktothepast",
+    "title": "The Legend of Zelda A Link to the Past",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/thelegendofzeldaalinktothepast.sfc",
+    "icon": "/images/thelegendofzeldaalinktothepast.PNG",
+    "subtitle": "SNES · ADVENTURE"
+  },
+  {
+    "id": "lufiaiiriseofthesinistrals",
+    "title": "Lufia II Rise of the Sinistrals",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/lufiaiiriseofthesinistrals.sfc",
+    "icon": "/images/lufiaiiriseofthesinistrals.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "mariopaint",
+    "title": "Mario Paint",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/mariopaint.sfc",
+    "icon": "/images/mariopaint.PNG",
+    "subtitle": "SNES · CREATIVE"
+  },
+  {
+    "id": "megaman7",
+    "title": "Mega Man 7",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/megaman7.sfc",
+    "icon": "/images/megaman7.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "megamanx",
+    "title": "Mega Man X",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/megamanx.sfc",
+    "icon": "/images/megamanx.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "megamanx2",
+    "title": "Mega Man X2",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/megamanx2.sfc",
+    "icon": "/images/megamanx2.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "megamanx3",
+    "title": "Mega Man X3",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/megamanx3.sfc",
+    "icon": "/images/megamanx3.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "metalmarines",
+    "title": "Metal Marines",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/metalmarines.sfc",
+    "icon": "/images/metalmarines.PNG",
+    "subtitle": "SNES · STRATEGY"
+  },
+  {
+    "id": "metalwarriors",
+    "title": "Metal Warriors",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/metalwarriors.sfc",
+    "icon": "/images/metalwarriors.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "mortalkombat",
+    "title": "Mortal Kombat",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/mortalkombat.sfc",
+    "icon": "/images/mortalkombat.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "mortalkombatii",
+    "title": "Mortal Kombat II",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/mortalkombatii.sfc",
+    "icon": "/images/mortalkombatii.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "nbajam",
+    "title": "NBA Jam",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/nbajam.sfc",
+    "icon": "/images/nbajam.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "outofthisworld",
+    "title": "Out of This World",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/outofthisworld.sfc",
+    "icon": "/images/outofthisworld.PNG",
+    "subtitle": "SNES · ADVENTURE"
+  },
+  {
+    "id": "pilotwings",
+    "title": "Pilotwings",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/pilotwings.sfc",
+    "icon": "/images/pilotwings.PNG",
+    "subtitle": "SNES · FLIGHT"
+  },
+  {
+    "id": "pockyrocky",
+    "title": "Pocky and Rocky",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/pockyrocky.sfc",
+    "icon": "/images/pockyrocky.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "rocknrollracing",
+    "title": "Rock N Roll Racing",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/rocknrollracing.sfc",
+    "icon": "/images/rocknrollracing.PNG",
+    "subtitle": "SNES · RACING"
+  },
+  {
+    "id": "rtypeiii",
+    "title": "R Type III",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/rtypeiii.sfc",
+    "icon": "/images/rtypeiii.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "secretofevermore",
+    "title": "Secret of Evermore",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/secretofevermore.sfc",
+    "icon": "/images/secretofevermore.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "secretofmana",
+    "title": "Secret of Mana",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/secretofmana.sfc",
+    "icon": "/images/secretofmana.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "shadowrun",
+    "title": "Shadowrun",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/shadowrun.sfc",
+    "icon": "/images/shadowrun.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "simcity",
+    "title": "SimCity",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/simcity.sfc",
+    "icon": "/images/simcity.PNG",
+    "subtitle": "SNES · SIMULATION"
+  },
+  {
+    "id": "soulblazer",
+    "title": "Soul Blazer",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/soulblazer.sfc",
+    "icon": "/images/soulblazer.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "spacemegaforce",
+    "title": "Space Megaforce",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/spacemegaforce.sfc",
+    "icon": "/images/spacemegaforce.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "sparkster",
+    "title": "Sparkster",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/sparkster.sfc",
+    "icon": "/images/sparkster.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "starfox",
+    "title": "Star Fox",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/starfox.sfc",
+    "icon": "/images/starfox.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "streetfighterii",
+    "title": "Street Fighter II",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/streetfighterii.sfc",
+    "icon": "/images/streetfighterii.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "streetfighteriiturbo",
+    "title": "Street Fighter II Turbo",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/streetfighteriiturbo.sfc",
+    "icon": "/images/streetfighteriiturbo.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "sunsetriders",
+    "title": "Sunset Riders",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/sunsetriders.sfc",
+    "icon": "/images/sunsetriders.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "superbomberman",
+    "title": "Super Bomberman",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superbomberman.sfc",
+    "icon": "/images/superbomberman.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "superbomberman2",
+    "title": "Super Bomberman 2",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superbomberman2.sfc",
+    "icon": "/images/superbomberman2.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "supercastlevaniaiv",
+    "title": "Super Castlevania IV",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supercastlevaniaiv.sfc",
+    "icon": "/images/supercastlevaniaiv.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "superghoulsnghosts",
+    "title": "Super Ghouls N Ghosts",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superghoulsnghosts.sfc",
+    "icon": "/images/superghoulsnghosts.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "supermarioallstars",
+    "title": "Super Mario All Stars",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermarioallstars.sfc",
+    "icon": "/images/supermarioallstars.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "supermariokart",
+    "title": "Super Mario Kart",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermariokart.sfc",
+    "icon": "/images/supermariokart.PNG",
+    "subtitle": "SNES · RACING"
+  },
+  {
+    "id": "supermariorpglegendofthesevenstars",
+    "title": "Super Mario RPG Legend of the Seven Stars",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermariorpglegendofthesevenstars.sfc",
+    "icon": "/images/supermariorpglegendofthesevenstars.PNG",
+    "subtitle": "SNES · RPG"
+  },
+  {
+    "id": "supermarioworld2yoshisisland",
+    "title": "Super Mario World 2 Yoshis Island",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermarioworld2yoshisisland.sfc",
+    "icon": "/images/supermarioworld2yoshisisland.PNG",
+    "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "supermetroid",
+    "title": "Super Metroid",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermetroid.sfc",
+    "icon": "/images/supermetroid.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "superpunchout",
+    "title": "Super Punch Out",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superpunchout.sfc",
+    "icon": "/images/superpunchout.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "supersmashtv",
+    "title": "Super Smash TV",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supersmashtv.sfc",
+    "icon": "/images/supersmashtv.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "superstarwars",
+    "title": "Super Star Wars",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superstarwars.sfc",
+    "icon": "/images/superstarwars.PNG",
+    "subtitle": "SNES · ACTION"
+  },
+  {
+    "id": "superstreetfighterii",
+    "title": "Super Street Fighter II",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/superstreetfighterii.sfc",
+    "icon": "/images/superstreetfighterii.PNG",
+    "subtitle": "SNES · FIGHTING"
+  },
+  {
+    "id": "supertennis",
+    "title": "Super Tennis",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supertennis.sfc",
+    "icon": "/images/supertennis.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "tecmosuperbowliiifinaledition",
+    "title": "Tecmo Super Bowl III Final Edition",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/tecmosuperbowliiifinaledition.sfc",
+    "icon": "/images/tecmosuperbowliiifinaledition.PNG",
+    "subtitle": "SNES · SPORTS"
+  },
+  {
+    "id": "teenagemutantninjaturtlesivturtlesintime",
+    "title": "Teenage Mutant Ninja Turtles IV Turtles in Time",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/teenagemutantninjaturtlesivturtlesintime.sfc",
+    "icon": "/images/teenagemutantninjaturtlesivturtlesintime.PNG",
+    "subtitle": "SNES · BEAT EM UP"
+  },
+  {
+    "id": "tetrisattack",
+    "title": "Tetris Attack",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/tetrisattack.sfc",
+    "icon": "/images/tetrisattack.PNG",
+    "subtitle": "SNES · PUZZLE"
+  },
+  {
+    "id": "topgear",
+    "title": "Top Gear",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/topgear.sfc",
+    "icon": "/images/topgear.PNG",
+    "subtitle": "SNES · RACING"
+  },
+  {
+    "id": "trialsofmana",
+    "title": "Trials of Mana",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/trialsofmana.sfc",
+    "icon": "/images/trialsofmana.PNG",
+    "subtitle": "SNES · ACTION RPG"
+  },
+  {
+    "id": "unsquadron",
+    "title": "UN Squadron",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/unsquadron.sfc",
+    "icon": "/images/unsquadron.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "unchartedwaters",
+    "title": "Uncharted Waters",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/unchartedwaters.sfc",
+    "icon": "/images/unchartedwaters.PNG",
+    "subtitle": "SNES · ADVENTURE"
+  },
+  {
+    "id": "uniracers",
+    "title": "Uniracers",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/uniracers.sfc",
+    "icon": "/images/uniracers.PNG",
+    "subtitle": "SNES · RACING"
+  },
+  {
+    "id": "wildguns",
+    "title": "Wild Guns",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/wildguns.sfc",
+    "icon": "/images/wildguns.PNG",
+    "subtitle": "SNES · SHOOTER"
+  },
+  {
+    "id": "zombiesatemyneighbors",
+    "title": "Zombies Ate My Neighbors",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/zombiesatemyneighbors.sfc",
+    "icon": "/images/zombiesatemyneighbors.PNG",
+    "subtitle": "SNES · ACTION"
   }
 ]
