@@ -19,5 +19,14 @@
     "url": "https://steppabot.github.io/clumsy-bird/",
     "icon": "https://steppabot.github.io/clumsy-bird/data/img/touch-icon-iphone-retina.png",
     "subtitle": "FLY \u00b7 DODGE"
+  },
+  {
+    "id": "supermarioworld",
+    "title": "Super Mario World",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/supermarioworld.sfc",
+    "icon": "https://dl.vimm.net/image.php?type=box_large&id=1652",
+    "subtitle": "SNES · PLATFORMER"
   }
 ]
