@@ -2029,5 +2029,156 @@ if (authError) {
 
 connect();
 </script>
+<style>
+/* Discord-style chat scrollbar */
+#chatBody {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #787b85 #2e3035;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+}
+
+#chatBody::-webkit-scrollbar {
+  width: 10px;
+}
+
+#chatBody::-webkit-scrollbar-track {
+  background: #2e3035;
+  border-radius: 10px;
+}
+
+#chatBody::-webkit-scrollbar-thumb {
+  background: #787b85;
+  border: 2px solid #2e3035;
+  border-radius: 10px;
+  min-height: 40px;
+}
+
+#chatBody::-webkit-scrollbar-thumb:hover {
+  background: #9598a2;
+}
+</style>
+
+<script>
+(() => {
+  const chat = document.getElementById('chatBody');
+  const messages = document.getElementById('messages');
+
+  let followLatest = true;
+  let updating = false;
+  let settleFrame = 0;
+
+  function atBottom() {
+    return chat.scrollHeight - chat.scrollTop - chat.clientHeight < 70;
+  }
+
+  function scrollToLatest() {
+    if (followLatest) {
+      chat.scrollTop = chat.scrollHeight;
+    }
+  }
+
+  function settleScroll() {
+    cancelAnimationFrame(settleFrame);
+    settleFrame = requestAnimationFrame(() => {
+      scrollToLatest();
+      settleFrame = requestAnimationFrame(() => {
+        updating = false;
+      });
+    });
+  }
+
+  chat.addEventListener('scroll', () => {
+    if (!updating) {
+      followLatest = atBottom();
+    }
+  }, { passive: true });
+
+  /* Immediately respect someone scrolling upward. */
+  chat.addEventListener('wheel', event => {
+    if (event.deltaY < 0) followLatest = false;
+  }, { passive: true });
+
+  let touchY = null;
+
+  chat.addEventListener('touchstart', event => {
+    touchY = event.touches[0]?.clientY ?? null;
+  }, { passive: true });
+
+  chat.addEventListener('touchmove', event => {
+    const nextY = event.touches[0]?.clientY;
+    if (touchY !== null && nextY > touchY) {
+      followLatest = false;
+    }
+    touchY = nextY ?? null;
+  }, { passive: true });
+
+  /* Keep the existing renderer, including photos and videos. */
+  const originalRenderMessages = renderMessages;
+
+  renderMessages = function(items) {
+    const previousScroll = chat.scrollTop;
+    updating = true;
+
+    originalRenderMessages(items);
+
+    if (followLatest) {
+      chat.scrollTop = chat.scrollHeight;
+    } else {
+      chat.scrollTop = previousScroll;
+    }
+
+    settleScroll();
+  };
+
+  /* Every newly opened channel starts at its newest message. */
+  const originalSelectChannel = selectChannel;
+
+  selectChannel = async function(id) {
+    followLatest = true;
+    updating = true;
+
+    try {
+      return await originalSelectChannel(id);
+    } finally {
+      settleScroll();
+    }
+  };
+
+  /* Images and videos can increase message height after rendering. */
+  messages.addEventListener('load', () => {
+    if (followLatest) {
+      updating = true;
+      scrollToLatest();
+      settleScroll();
+    }
+  }, true);
+
+  messages.addEventListener('loadedmetadata', () => {
+    if (followLatest) {
+      updating = true;
+      scrollToLatest();
+      settleScroll();
+    }
+  }, true);
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (followLatest) {
+      updating = true;
+      scrollToLatest();
+      settleScroll();
+    }
+  });
+
+  resizeObserver.observe(messages);
+  resizeObserver.observe(chat);
+
+  scrollToLatest();
+})();
+</script>
 </body>
 </html>
