@@ -3238,5 +3238,42 @@ function renderDiscordText(container, content, mentions = []) {
   applyFilter();
 })();
 </script>
+<script>
+(() => {
+  const list = document.getElementById("gameList");
+  if (!list) return;
+
+  const alphabetical = new Intl.Collator("en", {
+    sensitivity: "base",
+    numeric: true,
+    ignorePunctuation: true
+  });
+
+  function sortGameCards() {
+    const cards = [...list.querySelectorAll(".game-card")];
+
+    cards.sort((a, b) => {
+      const titleA = a.querySelector("b")?.textContent.trim() || "";
+      const titleB = b.querySelector("b")?.textContent.trim() || "";
+
+      return alphabetical.compare(titleA, titleB);
+    });
+
+    for (const card of cards) {
+      list.appendChild(card);
+    }
+  }
+
+  const previousRender = renderGameCards;
+
+  renderGameCards = function(entries) {
+    const result = previousRender(entries);
+    sortGameCards();
+    return result;
+  };
+
+  sortGameCards();
+})();
+</script>
 </body>
 </html>
