@@ -26,7 +26,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermarioworld.sfc",
-    "icon": "/images/supermarioworld.png",
+    "icon": "/images/supermarioworld.PNG",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -35,7 +35,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/tecmosuperbowl.sfc",
-    "icon": "/images/tecmosuperbowl.png",
+    "icon": "/images/tecmosuperbowl.PNG",
     "subtitle": "SNES · PLATFORMER"
   }
 ]
