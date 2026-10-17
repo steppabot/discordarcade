@@ -53,7 +53,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/aladdin.sfc",
-    "icon": "/images/aladdin.PNG",
+    "icon": "/images/aladdin.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -62,7 +62,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/axelay.sfc",
-    "icon": "/images/axelay.PNG",
+    "icon": "/images/axelay.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -71,7 +71,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/blackthorne.sfc",
-    "icon": "/images/blackthorne.PNG",
+    "icon": "/images/blackthorne.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -80,7 +80,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/breathoffire.sfc",
-    "icon": "/images/breathoffire.PNG",
+    "icon": "/images/breathoffire.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -89,7 +89,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/breathoffireii.sfc",
-    "icon": "/images/breathoffireii.PNG",
+    "icon": "/images/breathoffireii.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -98,7 +98,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/chronotrigger.sfc",
-    "icon": "/images/chronotrigger.PNG",
+    "icon": "/images/chronotrigger.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -107,7 +107,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/contraiiithealienwars.sfc",
-    "icon": "/images/contraiiithealienwars.PNG",
+    "icon": "/images/contraiiithealienwars.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -116,7 +116,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/cybernator.sfc",
-    "icon": "/images/cybernator.PNG",
+    "icon": "/images/cybernator.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -125,7 +125,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/demonscrest.sfc",
-    "icon": "/images/demonscrest.PNG",
+    "icon": "/images/demonscrest.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -134,7 +134,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/donkeykongcountry.sfc",
-    "icon": "/images/donkeykongcountry.PNG",
+    "icon": "/images/donkeykongcountry.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -143,7 +143,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/donkeykongcountry2diddyskongquest.sfc",
-    "icon": "/images/donkeykongcountry2diddyskongquest.PNG",
+    "icon": "/images/donkeykongcountry2diddyskongquest.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -152,7 +152,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/donkeykongcountry3dixiekongsdoubletrouble.sfc",
-    "icon": "/images/donkeykongcountry3dixiekongsdoubletrouble.PNG",
+    "icon": "/images/donkeykongcountry3dixiekongsdoubletrouble.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -161,7 +161,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/earthbound.sfc",
-    "icon": "/images/earthbound.PNG",
+    "icon": "/images/earthbound.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -170,7 +170,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/earthwormjim.sfc",
-    "icon": "/images/earthwormjim.PNG",
+    "icon": "/images/earthwormjim.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -179,7 +179,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/finalfantasyii.sfc",
-    "icon": "/images/finalfantasyii.PNG",
+    "icon": "/images/finalfantasyii.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -188,7 +188,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/finalfantasyiii.sfc",
-    "icon": "/images/finalfantasyiii.PNG",
+    "icon": "/images/finalfantasyiii.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -197,7 +197,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/fzero.sfc",
-    "icon": "/images/fzero.PNG",
+    "icon": "/images/fzero.jpg",
     "subtitle": "SNES · RACING"
   },
   {
@@ -206,7 +206,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/gooftroop.sfc",
-    "icon": "/images/gooftroop.PNG",
+    "icon": "/images/gooftroop.jpg",
     "subtitle": "SNES · ADVENTURE"
   },
   {
@@ -215,7 +215,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/gradiusiii.sfc",
-    "icon": "/images/gradiusiii.PNG",
+    "icon": "/images/gradiusiii.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -224,7 +224,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/haganethefinalconflict.sfc",
-    "icon": "/images/haganethefinalconflict.PNG",
+    "icon": "/images/haganethefinalconflict.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -233,7 +233,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/harvestmoon.sfc",
-    "icon": "/images/harvestmoon.PNG",
+    "icon": "/images/harvestmoon.jpg",
     "subtitle": "SNES · SIMULATION"
   },
   {
@@ -242,7 +242,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/illusionofgaia.sfc",
-    "icon": "/images/illusionofgaia.PNG",
+    "icon": "/images/illusionofgaia.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -251,7 +251,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/internationalsuperstarsoccerdeluxe.sfc",
-    "icon": "/images/internationalsuperstarsoccerdeluxe.PNG",
+    "icon": "/images/internationalsuperstarsoccerdeluxe.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -260,7 +260,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/kengriffeyjrpresentsmajorleaguebaseball.sfc",
-    "icon": "/images/kengriffeyjrpresentsmajorleaguebaseball.PNG",
+    "icon": "/images/kengriffeyjrpresentsmajorleaguebaseball.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -269,7 +269,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/killerinstinct.sfc",
-    "icon": "/images/killerinstinct.PNG",
+    "icon": "/images/killerinstinct.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -278,7 +278,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/kirbysuperstar.sfc",
-    "icon": "/images/kirbysuperstar.PNG",
+    "icon": "/images/kirbysuperstar.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -287,7 +287,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/kirbysavalanche.sfc",
-    "icon": "/images/kirbysavalanche.PNG",
+    "icon": "/images/kirbysavalanche.jpg",
     "subtitle": "SNES · PUZZLE"
   },
   {
@@ -296,7 +296,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/kirbysdreamcourse.sfc",
-    "icon": "/images/kirbysdreamcourse.PNG",
+    "icon": "/images/kirbysdreamcourse.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -305,7 +305,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/kirbysdreamland3.sfc",
-    "icon": "/images/kirbysdreamland3.PNG",
+    "icon": "/images/kirbysdreamland3.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -314,7 +314,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/thelegendofthemysticalninja.sfc",
-    "icon": "/images/thelegendofthemysticalninja.PNG",
+    "icon": "/images/thelegendofthemysticalninja.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -323,7 +323,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/thelegendofzeldaalinktothepast.sfc",
-    "icon": "/images/thelegendofzeldaalinktothepast.PNG",
+    "icon": "/images/thelegendofzeldaalinktothepast.jpg",
     "subtitle": "SNES · ADVENTURE"
   },
   {
@@ -332,7 +332,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/lufiaiiriseofthesinistrals.sfc",
-    "icon": "/images/lufiaiiriseofthesinistrals.PNG",
+    "icon": "/images/lufiaiiriseofthesinistrals.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -341,7 +341,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/mariopaint.sfc",
-    "icon": "/images/mariopaint.PNG",
+    "icon": "/images/mariopaint.jpg",
     "subtitle": "SNES · CREATIVE"
   },
   {
@@ -350,7 +350,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/megaman7.sfc",
-    "icon": "/images/megaman7.PNG",
+    "icon": "/images/megaman7.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -359,7 +359,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/megamanx.sfc",
-    "icon": "/images/megamanx.PNG",
+    "icon": "/images/megamanx.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -368,7 +368,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/megamanx2.sfc",
-    "icon": "/images/megamanx2.PNG",
+    "icon": "/images/megamanx2.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -377,7 +377,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/megamanx3.sfc",
-    "icon": "/images/megamanx3.PNG",
+    "icon": "/images/megamanx3.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -386,7 +386,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/metalmarines.sfc",
-    "icon": "/images/metalmarines.PNG",
+    "icon": "/images/metalmarines.jpg",
     "subtitle": "SNES · STRATEGY"
   },
   {
@@ -395,7 +395,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/metalwarriors.sfc",
-    "icon": "/images/metalwarriors.PNG",
+    "icon": "/images/metalwarriors.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -404,7 +404,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/mortalkombat.sfc",
-    "icon": "/images/mortalkombat.PNG",
+    "icon": "/images/mortalkombat.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -413,7 +413,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/mortalkombatii.sfc",
-    "icon": "/images/mortalkombatii.PNG",
+    "icon": "/images/mortalkombatii.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -422,7 +422,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/nbajam.sfc",
-    "icon": "/images/nbajam.PNG",
+    "icon": "/images/nbajam.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -431,7 +431,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/outofthisworld.sfc",
-    "icon": "/images/outofthisworld.PNG",
+    "icon": "/images/outofthisworld.jpg",
     "subtitle": "SNES · ADVENTURE"
   },
   {
@@ -440,7 +440,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/pilotwings.sfc",
-    "icon": "/images/pilotwings.PNG",
+    "icon": "/images/pilotwings.jpg",
     "subtitle": "SNES · FLIGHT"
   },
   {
@@ -449,7 +449,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/pockyrocky.sfc",
-    "icon": "/images/pockyrocky.PNG",
+    "icon": "/images/pockyrocky.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -458,7 +458,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/rocknrollracing.sfc",
-    "icon": "/images/rocknrollracing.PNG",
+    "icon": "/images/rocknrollracing.jpg",
     "subtitle": "SNES · RACING"
   },
   {
@@ -467,7 +467,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/rtypeiii.sfc",
-    "icon": "/images/rtypeiii.PNG",
+    "icon": "/images/rtypeiii.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -476,7 +476,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/secretofevermore.sfc",
-    "icon": "/images/secretofevermore.PNG",
+    "icon": "/images/secretofevermore.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -485,7 +485,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/secretofmana.sfc",
-    "icon": "/images/secretofmana.PNG",
+    "icon": "/images/secretofmana.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -494,7 +494,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/shadowrun.sfc",
-    "icon": "/images/shadowrun.PNG",
+    "icon": "/images/shadowrun.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -503,7 +503,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/simcity.sfc",
-    "icon": "/images/simcity.PNG",
+    "icon": "/images/simcity.jpg",
     "subtitle": "SNES · SIMULATION"
   },
   {
@@ -512,7 +512,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/soulblazer.sfc",
-    "icon": "/images/soulblazer.PNG",
+    "icon": "/images/soulblazer.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -521,7 +521,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/spacemegaforce.sfc",
-    "icon": "/images/spacemegaforce.PNG",
+    "icon": "/images/spacemegaforce.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -530,7 +530,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/sparkster.sfc",
-    "icon": "/images/sparkster.PNG",
+    "icon": "/images/sparkster.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -539,7 +539,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/starfox.sfc",
-    "icon": "/images/starfox.PNG",
+    "icon": "/images/starfox.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -548,7 +548,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/streetfighterii.sfc",
-    "icon": "/images/streetfighterii.PNG",
+    "icon": "/images/streetfighterii.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -557,7 +557,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/streetfighteriiturbo.sfc",
-    "icon": "/images/streetfighteriiturbo.PNG",
+    "icon": "/images/streetfighteriiturbo.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -566,7 +566,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/sunsetriders.sfc",
-    "icon": "/images/sunsetriders.PNG",
+    "icon": "/images/sunsetriders.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -575,7 +575,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superbomberman.sfc",
-    "icon": "/images/superbomberman.PNG",
+    "icon": "/images/superbomberman.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -584,7 +584,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superbomberman2.sfc",
-    "icon": "/images/superbomberman2.PNG",
+    "icon": "/images/superbomberman2.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -593,7 +593,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supercastlevaniaiv.sfc",
-    "icon": "/images/supercastlevaniaiv.PNG",
+    "icon": "/images/supercastlevaniaiv.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -602,7 +602,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superghoulsnghosts.sfc",
-    "icon": "/images/superghoulsnghosts.PNG",
+    "icon": "/images/superghoulsnghosts.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -611,7 +611,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermarioallstars.sfc",
-    "icon": "/images/supermarioallstars.PNG",
+    "icon": "/images/supermarioallstars.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -620,7 +620,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermariokart.sfc",
-    "icon": "/images/supermariokart.PNG",
+    "icon": "/images/supermariokart.jpg",
     "subtitle": "SNES · RACING"
   },
   {
@@ -629,7 +629,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermariorpglegendofthesevenstars.sfc",
-    "icon": "/images/supermariorpglegendofthesevenstars.PNG",
+    "icon": "/images/supermariorpglegendofthesevenstars.jpg",
     "subtitle": "SNES · RPG"
   },
   {
@@ -638,7 +638,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermarioworld2yoshisisland.sfc",
-    "icon": "/images/supermarioworld2yoshisisland.PNG",
+    "icon": "/images/supermarioworld2yoshisisland.jpg",
     "subtitle": "SNES · PLATFORMER"
   },
   {
@@ -647,7 +647,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supermetroid.sfc",
-    "icon": "/images/supermetroid.PNG",
+    "icon": "/images/supermetroid.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -656,7 +656,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superpunchout.sfc",
-    "icon": "/images/superpunchout.PNG",
+    "icon": "/images/superpunchout.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -665,7 +665,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supersmashtv.sfc",
-    "icon": "/images/supersmashtv.PNG",
+    "icon": "/images/supersmashtv.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -674,7 +674,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superstarwars.sfc",
-    "icon": "/images/superstarwars.PNG",
+    "icon": "/images/superstarwars.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -683,7 +683,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/superstreetfighterii.sfc",
-    "icon": "/images/superstreetfighterii.PNG",
+    "icon": "/images/superstreetfighterii.jpg",
     "subtitle": "SNES · FIGHTING"
   },
   {
@@ -692,7 +692,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/supertennis.sfc",
-    "icon": "/images/supertennis.PNG",
+    "icon": "/images/supertennis.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -701,7 +701,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/tecmosuperbowliiifinaledition.sfc",
-    "icon": "/images/tecmosuperbowliiifinaledition.PNG",
+    "icon": "/images/tecmosuperbowliiifinaledition.jpg",
     "subtitle": "SNES · SPORTS"
   },
   {
@@ -710,7 +710,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/teenagemutantninjaturtlesivturtlesintime.sfc",
-    "icon": "/images/teenagemutantninjaturtlesivturtlesintime.PNG",
+    "icon": "/images/teenagemutantninjaturtlesivturtlesintime.jpg",
     "subtitle": "SNES · BEAT EM UP"
   },
   {
@@ -719,7 +719,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/tetrisattack.sfc",
-    "icon": "/images/tetrisattack.PNG",
+    "icon": "/images/tetrisattack.jpg",
     "subtitle": "SNES · PUZZLE"
   },
   {
@@ -728,7 +728,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/topgear.sfc",
-    "icon": "/images/topgear.PNG",
+    "icon": "/images/topgear.jpg",
     "subtitle": "SNES · RACING"
   },
   {
@@ -737,7 +737,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/trialsofmana.sfc",
-    "icon": "/images/trialsofmana.PNG",
+    "icon": "/images/trialsofmana.jpg",
     "subtitle": "SNES · ACTION RPG"
   },
   {
@@ -746,7 +746,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/unsquadron.sfc",
-    "icon": "/images/unsquadron.PNG",
+    "icon": "/images/unsquadron.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -755,7 +755,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/unchartedwaters.sfc",
-    "icon": "/images/unchartedwaters.PNG",
+    "icon": "/images/unchartedwaters.jpg",
     "subtitle": "SNES · ADVENTURE"
   },
   {
@@ -764,7 +764,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/uniracers.sfc",
-    "icon": "/images/uniracers.PNG",
+    "icon": "/images/uniracers.jpg",
     "subtitle": "SNES · RACING"
   },
   {
@@ -773,7 +773,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/wildguns.sfc",
-    "icon": "/images/wildguns.PNG",
+    "icon": "/images/wildguns.jpg",
     "subtitle": "SNES · SHOOTER"
   },
   {
@@ -782,7 +782,7 @@
     "type": "retro",
     "core": "snes",
     "url": "/games/snes/zombiesatemyneighbors.sfc",
-    "icon": "/images/zombiesatemyneighbors.PNG",
+    "icon": "/images/zombiesatemyneighbors.jpg",
     "subtitle": "SNES · ACTION"
   },
   {
@@ -846,7 +846,7 @@
     "title": "Commando",
     "type": "flash",
     "url": "/games/flash/commando.swf",
-    "icon": "/images/commando.PNG",
+    "icon": "/images/commando.jpg",
     "subtitle": "FLASH · SHOOTER"
   },
   {
@@ -854,7 +854,7 @@
     "title": "Don't Escape",
     "type": "flash",
     "url": "/games/flash/dontescape.swf",
-    "icon": "/images/dontescape.PNG",
+    "icon": "/images/dontescape.jpg",
     "subtitle": "FLASH · ADVENTURE"
   },
   {
@@ -862,7 +862,7 @@
     "title": "Don't Shoot the Puppy",
     "type": "flash",
     "url": "/games/flash/dontshootthepuppy.swf",
-    "icon": "/images/dontshootthepuppy.PNG",
+    "icon": "/images/dontshootthepuppy.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -870,7 +870,7 @@
     "title": "Doom",
     "type": "flash",
     "url": "/games/flash/doom.swf",
-    "icon": "/images/doom.PNG",
+    "icon": "/images/doom.jpg",
     "subtitle": "FLASH · SHOOTER"
   },
   {
@@ -878,7 +878,7 @@
     "title": "Duck Life",
     "type": "flash",
     "url": "/games/flash/ducklife1.swf",
-    "icon": "/images/ducklife1.PNG",
+    "icon": "/images/ducklife1.jpg",
     "subtitle": "FLASH · RACING"
   },
   {
@@ -886,7 +886,7 @@
     "title": "Empires of Arkeia",
     "type": "flash",
     "url": "/games/flash/empiresofarkeia.swf",
-    "icon": "/images/empiresofarkeia.PNG",
+    "icon": "/images/empiresofarkeia.jpg",
     "subtitle": "FLASH · STRATEGY"
   },
   {
@@ -894,7 +894,7 @@
     "title": "Fish Tales 2",
     "type": "flash",
     "url": "/games/flash/fishtales2.swf",
-    "icon": "/images/fishtales2.PNG",
+    "icon": "/images/fishtales2.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -902,7 +902,7 @@
     "title": "Fish Tales Deluxe Edition",
     "type": "flash",
     "url": "/games/flash/fishtalesdeluxeedition.swf",
-    "icon": "/images/fishtalesdeluxeedition.PNG",
+    "icon": "/images/fishtalesdeluxeedition.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -910,7 +910,7 @@
     "title": "Gotham City Rush",
     "type": "flash",
     "url": "/games/flash/gothamcityrush.swf",
-    "icon": "/images/gothamcityrush.PNG",
+    "icon": "/images/gothamcityrush.jpg",
     "subtitle": "FLASH · ACTION"
   },
   {
@@ -918,7 +918,7 @@
     "title": "Henry Stickmin Breaking the Bank",
     "type": "flash",
     "url": "/games/flash/henrystickminbreakingthebank.swf",
-    "icon": "/images/henrystickminbreakingthebank.PNG",
+    "icon": "/images/henrystickminbreakingthebank.jpg",
     "subtitle": "FLASH · ADVENTURE"
   },
   {
@@ -926,7 +926,7 @@
     "title": "Learn to Fly",
     "type": "flash",
     "url": "/games/flash/learntofly.swf",
-    "icon": "/images/learntofly.PNG",
+    "icon": "/images/learntofly.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -934,7 +934,7 @@
     "title": "Mad Arrow",
     "type": "flash",
     "url": "/games/flash/madarrow.swf",
-    "icon": "/images/madarrow.PNG",
+    "icon": "/images/madarrow.jpg",
     "subtitle": "FLASH · STRATEGY"
   },
   {
@@ -942,7 +942,7 @@
     "title": "Minesweeper",
     "type": "flash",
     "url": "/games/flash/minesweeper.swf",
-    "icon": "/images/minesweeper.PNG",
+    "icon": "/images/minesweeper.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -950,7 +950,7 @@
     "title": "Motherload",
     "type": "flash",
     "url": "/games/flash/motherload.swf",
-    "icon": "/images/motherload.PNG",
+    "icon": "/images/motherload.jpg",
     "subtitle": "FLASH · MINING"
   },
   {
@@ -958,7 +958,7 @@
     "title": "Pac-Man",
     "type": "flash",
     "url": "/games/flash/pacman.swf",
-    "icon": "/images/pacman.PNG",
+    "icon": "/images/pacman.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -966,7 +966,7 @@
     "title": "Papa's Pizzeria",
     "type": "flash",
     "url": "/games/flash/papaspizzeria.swf",
-    "icon": "/images/papaspizzeria.PNG",
+    "icon": "/images/papaspizzeria.jpg",
     "subtitle": "FLASH · MANAGEMENT"
   },
   {
@@ -974,7 +974,7 @@
     "title": "Penguin Diner",
     "type": "flash",
     "url": "/games/flash/penguindiner.swf",
-    "icon": "/images/penguindiner.PNG",
+    "icon": "/images/penguindiner.jpg",
     "subtitle": "FLASH · MANAGEMENT"
   },
   {
@@ -982,7 +982,7 @@
     "title": "Pipe Riders",
     "type": "flash",
     "url": "/games/flash/piperiders.swf",
-    "icon": "/images/piperiders.PNG",
+    "icon": "/images/piperiders.jpg",
     "subtitle": "FLASH · RACING"
   },
   {
@@ -990,7 +990,7 @@
     "title": "Pocket Fighter Nova",
     "type": "flash",
     "url": "/games/flash/pocketfighternovaupdated.swf",
-    "icon": "/images/pocketfighternovaupdated.PNG",
+    "icon": "/images/pocketfighternovaupdated.jpg",
     "subtitle": "FLASH · FIGHTING"
   },
   {
@@ -998,7 +998,7 @@
     "title": "Riddle School",
     "type": "flash",
     "url": "/games/flash/riddleschool.swf",
-    "icon": "/images/riddleschool.PNG",
+    "icon": "/images/riddleschool.jpg",
     "subtitle": "FLASH · ADVENTURE"
   },
   {
@@ -1006,7 +1006,7 @@
     "title": "Rollercoaster Creator",
     "type": "flash",
     "url": "/games/flash/rollercoastercreator.swf",
-    "icon": "/images/rollercoastercreator.PNG",
+    "icon": "/images/rollercoastercreator.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -1014,7 +1014,7 @@
     "title": "Rubik's Cube",
     "type": "flash",
     "url": "/games/flash/rubikscube.swf",
-    "icon": "/images/rubikscube.PNG",
+    "icon": "/images/rubikscube.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -1022,7 +1022,7 @@
     "title": "Scrap Metal Heroes",
     "type": "flash",
     "url": "/games/flash/scrapmetalheroes.swf",
-    "icon": "/images/scrapmetalheroes.PNG",
+    "icon": "/images/scrapmetalheroes.jpg",
     "subtitle": "FLASH · STRATEGY"
   },
   {
@@ -1030,7 +1030,7 @@
     "title": "Shopping Cart Hero",
     "type": "flash",
     "url": "/games/flash/shoppingcarthero.swf",
-    "icon": "/images/shoppingcarthero.PNG",
+    "icon": "/images/shoppingcarthero.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -1038,7 +1038,7 @@
     "title": "Showdown",
     "type": "flash",
     "url": "/games/flash/showdown.swf",
-    "icon": "/images/showdown.PNG",
+    "icon": "/images/showdown.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -1046,7 +1046,7 @@
     "title": "Snake",
     "type": "flash",
     "url": "/games/flash/snake.swf",
-    "icon": "/images/snake.PNG",
+    "icon": "/images/snake.jpg",
     "subtitle": "FLASH · ARCADE"
   },
   {
@@ -1054,7 +1054,7 @@
     "title": "Stick RPG",
     "type": "flash",
     "url": "/games/flash/stick-rpg.swf",
-    "icon": "/images/stickrpg.PNG",
+    "icon": "/images/stickrpg.jpg",
     "subtitle": "FLASH · RPG"
   },
   {
@@ -1062,7 +1062,7 @@
     "title": "Storm the House",
     "type": "flash",
     "url": "/games/flash/storm-the-house.swf",
-    "icon": "/images/stormthehouse.PNG",
+    "icon": "/images/stormthehouse.jpg",
     "subtitle": "FLASH · DEFENSE"
   },
   {
@@ -1070,7 +1070,7 @@
     "title": "StrikeForce Kitty",
     "type": "flash",
     "url": "/games/flash/strikeforce-kitty.swf",
-    "icon": "/images/strikeforcekitty.PNG",
+    "icon": "/images/strikeforcekitty.jpg",
     "subtitle": "FLASH · PLATFORMER"
   },
   {
@@ -1078,7 +1078,7 @@
     "title": "Sugar Sugar",
     "type": "flash",
     "url": "/games/flash/sugar-sugar.swf",
-    "icon": "/images/sugarsugar.PNG",
+    "icon": "/images/sugarsugar.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -1086,7 +1086,7 @@
     "title": "Summon the Hero",
     "type": "flash",
     "url": "/games/flash/summon-the-hero.swf",
-    "icon": "/images/summonthehero.PNG",
+    "icon": "/images/summonthehero.jpg",
     "subtitle": "FLASH · TOWER DEFENSE"
   },
   {
@@ -1094,7 +1094,7 @@
     "title": "Super Smash Flash",
     "type": "flash",
     "url": "/games/flash/super-smash-flash.swf",
-    "icon": "/images/supersmashflash.PNG",
+    "icon": "/images/supersmashflash.jpg",
     "subtitle": "FLASH · FIGHTING"
   },
   {
@@ -1102,7 +1102,7 @@
     "title": "Tetris",
     "type": "flash",
     "url": "/games/flash/tetris.swf",
-    "icon": "/images/tetris.PNG",
+    "icon": "/images/tetris.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -1110,7 +1110,7 @@
     "title": "The Fancy Pants Adventure",
     "type": "flash",
     "url": "/games/flash/thefancypantsadventure.swf",
-    "icon": "/images/thefancypantsadventure.PNG",
+    "icon": "/images/thefancypantsadventure.jpg",
     "subtitle": "FLASH · PLATFORMER"
   },
   {
@@ -1118,7 +1118,7 @@
     "title": "The Impossible Quiz",
     "type": "flash",
     "url": "/games/flash/theimpossiblequiz.swf",
-    "icon": "/images/theimpossiblequiz.PNG",
+    "icon": "/images/theimpossiblequiz.jpg",
     "subtitle": "FLASH · TRIVIA"
   },
   {
@@ -1126,7 +1126,7 @@
     "title": "The World's Hardest Game",
     "type": "flash",
     "url": "/games/flash/theworldshardestgame.swf",
-    "icon": "/images/theworldshardestgame.PNG",
+    "icon": "/images/theworldshardestgame.jpg",
     "subtitle": "FLASH · SKILL"
   },
   {
@@ -1134,7 +1134,7 @@
     "title": "Toxic",
     "type": "flash",
     "url": "/games/flash/toxic.swf",
-    "icon": "/images/toxic.PNG",
+    "icon": "/images/toxic.jpg",
     "subtitle": "FLASH · PLATFORMER"
   },
   {
@@ -1142,7 +1142,7 @@
     "title": "Truck Loader",
     "type": "flash",
     "url": "/games/flash/truckloader.swf",
-    "icon": "/images/truckloader.PNG",
+    "icon": "/images/truckloader.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -1150,7 +1150,7 @@
     "title": "Turtle",
     "type": "flash",
     "url": "/games/flash/turtle.swf",
-    "icon": "/images/turtle.PNG",
+    "icon": "/images/turtle.jpg",
     "subtitle": "FLASH · ARCADE"
   }
 ]
