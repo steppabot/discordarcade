@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discord Arcade Player</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, sans-serif;
+      background: #111214;
+      color: #f2f3f5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body, #game {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #game {
+      position: relative;
+      background: #111214;
+    }
+
+    ruffle-player {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #status {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      padding: 24px;
+      text-align: center;
+      background: #111214;
+      z-index: 5;
+    }
+
+    #status[hidden] {
+      display: none;
+    }
+
+    #status p {
+      max-width: 480px;
+      line-height: 1.6;
+      color: #b5bac1;
+      overflow-wrap: anywhere;
+    }
+
+    #retry {
+      justify-self: center;
+      padding: 10px 20px;
+      border: 0;
+      border-radius: 8px;
+      background: #b9f77d;
+      color: #182116;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #retry[hidden] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game"></div>
+
+  <div id="status" role="status">
+    <p id="message">Loading player…</p>
+    <button id="retry" type="button" hidden>Try again</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const container = document.getElementById("game");
+    const status = document.getElementById("status");
+    const message = document.getElementById("message");
+    const retry = document.getElementById("retry");
+
+    retry.onclick = () => location.reload();
+
+    function fileURL(value) {
+      if (!value) throw new Error("This game has no file URL.");
+
+      const url = new URL(value, location.href);
+
+      if (url.protocol !== "https:") {
+        throw new Error("The game file must use HTTPS.");
+      }
+
+      return url.href;
+    }
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => reject(
+          new Error("The player could not download. Please try again.")
+        );
+        document.head.append(script);
+      });
+    }
+
+    function showError(error) {
+      console.error(error);
+      message.textContent =
+        "Could not start this game. " +
+        (error.message || "Please try again.");
+      retry.hidden = false;
+      status.hidden = false;
+    }
+
+    async function start() {
+      const type = params.get("type");
+      const url = fileURL(params.get("url"));
+      const title = params.get("title") || "Discord Arcade";
+
+      document.title = title;
+
+      if (type === "retro") {
+        const core = params.get("core");
+
+        if (!core || !/^[a-z0-9_-]+$/i.test(core)) {
+          throw new Error("The emulator core is missing or invalid.");
+        }
+
+        window.EJS_player = "#game";
+        window.EJS_core = core;
+        window.EJS_gameUrl = url;
+        window.EJS_gameName = title;
+        window.EJS_pathtodata =
+          "https://cdn.emulatorjs.org/stable/data/";
+        window.EJS_color = "#b9f77d";
+        window.EJS_backgroundColor = "#111214";
+        window.EJS_startOnLoaded = false;
+        window.EJS_threads = false;
+
+        if (params.get("bios")) {
+          window.EJS_biosUrl = fileURL(params.get("bios"));
+        }
+
+        await loadScript(
+          window.EJS_pathtodata + "loader.js"
+        );
+
+        status.hidden = true;
+        return;
+      }
+
+      if (type === "flash") {
+        window.RufflePlayer = window.RufflePlayer || {};
+
+        window.RufflePlayer.config = {
+          autoplay: "off",
+          allowScriptAccess: false,
+          backgroundColor: "#111214"
+        };
+
+        await loadScript("https://unpkg.com/@ruffle-rs/ruffle");
+
+        const ruffle = window.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+
+        container.append(player);
+
+        await player.ruffle().load({
+          url,
+          autoplay: "off",
+          allowScriptAccess: false
+        });
+
+        status.hidden = true;
+        return;
+      }
+
+      throw new Error("Unsupported game type.");
+    }
+
+    start().catch(showError);
+  </script>
+</body>
+</html>
