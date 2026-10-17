@@ -890,14 +890,6 @@
     "subtitle": "FLASH · STRATEGY"
   },
   {
-    "id": "extremepamplona",
-    "title": "Extreme Pamplona",
-    "type": "flash",
-    "url": "/games/flash/extremepamplona.swf",
-    "icon": "/images/extremepamplona.PNG",
-    "subtitle": "FLASH · RUNNER"
-  },
-  {
     "id": "fishtales2",
     "title": "Fish Tales 2",
     "type": "flash",
