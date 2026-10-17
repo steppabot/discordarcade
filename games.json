@@ -1,0 +1,23 @@
+[
+  {
+    "id": "2048",
+    "title": "2048",
+    "url": "https://steppabot.github.io/2048/",
+    "icon": "https://steppabot.github.io/2048/meta/apple-touch-icon.png",
+    "subtitle": "MERGE \u00b7 PUZZLE"
+  },
+  {
+    "id": "hextris",
+    "title": "Hextris",
+    "url": "https://steppabot.github.io/hextris/",
+    "icon": "https://steppabot.github.io/hextris/images/icons/apple-touch-180.png",
+    "subtitle": "ROTATE \u00b7 PUZZLE"
+  },
+  {
+    "id": "clumsy-bird",
+    "title": "Clumsy Bird",
+    "url": "https://steppabot.github.io/clumsy-bird/",
+    "icon": "https://steppabot.github.io/clumsy-bird/data/img/touch-icon-iphone-retina.png",
+    "subtitle": "FLY \u00b7 DODGE"
+  }
+]
