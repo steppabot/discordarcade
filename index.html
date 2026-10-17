@@ -2962,5 +2962,62 @@ function renderDiscordText(container, content, mentions = []) {
     margin-left: 0;
   }
 </style>
+<style>
+  #gameList {
+    align-items: stretch;
+    flex-shrink: 0;
+    height: auto;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+  }
+
+  #gameList .game-card {
+    box-sizing: border-box;
+    flex: 0 0 260px;
+    width: 260px;
+    min-width: 260px;
+    height: auto;
+    min-height: 94px;
+    gap: 12px;
+    padding: 12px;
+    white-space: normal;
+  }
+
+  #gameList .game-card-copy,
+  #helicopterCard > span:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #gameList .game-card b {
+    display: block;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #gameList .game-card small {
+    display: block;
+    margin-top: 6px;
+    font-size: 9px;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #gameList .game-icon,
+  #gameList .thumb {
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  #gameList .selected-mark {
+    flex-shrink: 0;
+    margin-left: 0;
+  }
+</style>
 </body>
 </html>
