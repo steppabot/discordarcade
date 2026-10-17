@@ -2963,61 +2963,280 @@ function renderDiscordText(container, content, mentions = []) {
   }
 </style>
 <style>
-  #gameList {
-    align-items: stretch;
-    flex-shrink: 0;
-    height: auto;
-    max-height: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 8px;
-  }
-
-  #gameList .game-card {
-    box-sizing: border-box;
-    flex: 0 0 260px;
-    width: 260px;
-    min-width: 260px;
-    height: auto;
-    min-height: 94px;
+  #retroConsoles {
+    display: flex;
     gap: 12px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  #retroConsoles[hidden],
+  #retroNavigation[hidden],
+  #gameList[hidden] {
+    display: none !important;
+  }
+
+  .retro-console {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 190px;
     padding: 12px;
-    white-space: normal;
+    border: 1px solid #515563;
+    border-radius: 10px;
+    background: #292b30;
+    color: #f2f3f5;
+    text-align: left;
+    cursor: pointer;
   }
 
-  #gameList .game-card-copy,
-  #helicopterCard > span:nth-child(2) {
-    flex: 1;
-    min-width: 0;
+  .retro-console:hover,
+  .retro-console:focus-visible {
+    border-color: #b9f77d;
+    background: #35393f;
   }
 
-  #gameList .game-card b {
+  .retro-console img {
+    width: 64px;
+    height: 52px;
+    object-fit: contain;
+    border-radius: 7px;
+    background: #202225;
+  }
+
+  .retro-console strong,
+  .retro-console small {
     display: block;
-    font-size: 13px;
-    line-height: 1.35;
-    white-space: normal;
-    overflow-wrap: anywhere;
   }
 
-  #gameList .game-card small {
-    display: block;
-    margin-top: 6px;
-    font-size: 9px;
-    line-height: 1.4;
-    white-space: normal;
-    overflow-wrap: anywhere;
+  .retro-console strong {
+    font: 800 15px system-ui, sans-serif;
   }
 
-  #gameList .game-icon,
-  #gameList .thumb {
+  .retro-console small {
+    margin-top: 5px;
+    color: #b5bac1;
+    font: 11px system-ui, sans-serif;
+  }
+
+  #retroNavigation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     flex-shrink: 0;
-    align-self: center;
+    margin-bottom: 10px;
+    color: #b5bac1;
+    font: 700 12px system-ui, sans-serif;
   }
 
-  #gameList .selected-mark {
-    flex-shrink: 0;
-    margin-left: 0;
+  #retroNavigation button {
+    padding: 7px 12px;
+    border: 1px solid #515563;
+    border-radius: 7px;
+    background: #292b30;
+    color: #f2f3f5;
+    cursor: pointer;
+  }
+
+  #gameList .game-card[hidden] {
+    display: none !important;
   }
 </style>
+
+<script>
+(() => {
+  const categories = document.getElementById("arcadeCategories");
+  const list = document.getElementById("gameList");
+
+  if (!categories || !list || document.getElementById("retroConsoles")) {
+    return;
+  }
+
+  const systems = [
+    { id: "snes", title: "SNES", color: "#a99ae8" },
+    { id: "nes", title: "NES", color: "#ef6666" },
+    { id: "segaMD", title: "SEGA Genesis", color: "#6fa8ff" }
+  ];
+
+  let category = categories.querySelector(
+    '[aria-pressed="true"]'
+  )?.dataset.category || "all";
+
+  let selectedConsole = null;
+
+  const consoles = document.createElement("div");
+  consoles.id = "retroConsoles";
+  consoles.hidden = true;
+  consoles.setAttribute("aria-label", "Choose a retro console");
+
+  const navigation = document.createElement("div");
+  navigation.id = "retroNavigation";
+  navigation.hidden = true;
+
+  const back = document.createElement("button");
+  back.type = "button";
+  back.textContent = "← Consoles";
+
+  const heading = document.createElement("span");
+  navigation.append(back, heading);
+
+  list.before(consoles, navigation);
+
+  function coreOf(game) {
+    if (game.type !== "retro") return "";
+
+    try {
+      return game.core ||
+        new URL(game.url, document.baseURI).searchParams.get("core") ||
+        "";
+    } catch {
+      return "";
+    }
+  }
+
+  function fallbackThumbnail(color) {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80">
+        <rect width="100" height="80" rx="12" fill="#202225"/>
+        <path d="M27 24h46c9 0 15 30 10 34-5 5-14-6-18-10H35
+                 c-4 4-13 15-18 10-5-4 1-34 10-34Z"
+              fill="${color}"/>
+        <path d="M29 30v17M21 38h17"
+              stroke="#202225" stroke-width="6"/>
+        <circle cx="68" cy="34" r="4" fill="#202225"/>
+        <circle cx="76" cy="42" r="4" fill="#202225"/>
+      </svg>`;
+
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+
+  function renderConsoles() {
+    consoles.replaceChildren();
+
+    const available = [...systems];
+
+    // Automatically include other emulator cores added later.
+    for (const game of allGames) {
+      const core = coreOf(game);
+
+      if (core && !available.some(system => system.id === core)) {
+        available.push({
+          id: core,
+          title: core.toUpperCase(),
+          color: "#b9f77d"
+        });
+      }
+    }
+
+    for (const system of available) {
+      const count = allGames.filter(
+        game => coreOf(game) === system.id
+      ).length;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "retro-console";
+
+      const image = document.createElement("img");
+      image.alt = "";
+      image.src = `/images/consoles/${system.id.toLowerCase()}.png`;
+      image.onerror = () => {
+        image.onerror = null;
+        image.src = fallbackThumbnail(system.color);
+      };
+
+      const label = document.createElement("span");
+      const title = document.createElement("strong");
+      const detail = document.createElement("small");
+
+      title.textContent = system.title;
+      detail.textContent = count
+        ? `${count} GAME${count === 1 ? "" : "S"}`
+        : "COMING SOON";
+
+      label.append(title, detail);
+      button.append(image, label);
+
+      button.onclick = () => {
+        selectedConsole = system.id;
+        heading.textContent = system.title;
+        applyFilter();
+        list.scrollLeft = 0;
+      };
+
+      consoles.append(button);
+    }
+  }
+
+  function applyFilter() {
+    const isRetro = category === "retro";
+    const choosingConsole = isRetro && !selectedConsole;
+
+    consoles.hidden = !choosingConsole;
+    navigation.hidden = !isRetro || choosingConsole;
+    list.hidden = choosingConsole;
+
+    let visible = 0;
+
+    for (const card of list.querySelectorAll(".game-card")) {
+      const id = card.dataset.id ||
+        (card.id === "helicopterCard" ? "helicopter" : "");
+
+      const game = allGames.find(entry => entry.id === id);
+      const type = game?.type || "browser";
+
+      const show = isRetro
+        ? Boolean(selectedConsole) &&
+          type === "retro" &&
+          coreOf(game) === selectedConsole
+        : category === "all" || category === type;
+
+      card.hidden = !show;
+      if (show) visible++;
+    }
+
+    const empty = document.querySelector(".arcade-category-empty");
+    if (empty) empty.hidden = choosingConsole || visible > 0;
+
+    const count = document.getElementById("gameCount");
+    if (count) {
+      count.textContent = choosingConsole
+        ? "CHOOSE A CONSOLE"
+        : `${visible} GAME${visible === 1 ? "" : "S"} AVAILABLE`;
+    }
+  }
+
+  back.onclick = () => {
+    selectedConsole = null;
+    applyFilter();
+  };
+
+  // Runs after the existing category button's own handler.
+  categories.addEventListener("click", event => {
+    const button = event.target.closest("button[data-category]");
+    if (!button) return;
+
+    category = button.dataset.category;
+    selectedConsole = null;
+    renderConsoles();
+    applyFilter();
+    list.scrollLeft = 0;
+  });
+
+  // Preserve console filtering when the catalog reloads.
+  const previousRender = renderGameCards;
+
+  renderGameCards = function(entries) {
+    previousRender(entries);
+    renderConsoles();
+    applyFilter();
+  };
+
+  renderConsoles();
+  applyFilter();
+})();
+</script>
 </body>
 </html>
