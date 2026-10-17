@@ -790,7 +790,7 @@
     "title": "Age of War",
     "type": "flash",
     "url": "/games/flash/ageofwar.swf",
-    "icon": "/images/ageofwar.PNG",
+    "icon": "/images/ageofwar.jpg",
     "subtitle": "FLASH · STRATEGY"
   },
   {
@@ -798,7 +798,7 @@
     "title": "Bloons",
     "type": "flash",
     "url": "/games/flash/bloons.swf",
-    "icon": "/images/bloons.PNG",
+    "icon": "/images/bloons.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -806,7 +806,7 @@
     "title": "Bloons Super Monkey",
     "type": "flash",
     "url": "/games/flash/bloonssupermonkey.swf",
-    "icon": "/images/bloonssupermonkey.PNG",
+    "icon": "/images/bloonssupermonkey.jpg",
     "subtitle": "FLASH · SHOOTER"
   },
   {
@@ -814,7 +814,7 @@
     "title": "Bloons Tower Defense",
     "type": "flash",
     "url": "/games/flash/bloonstowerdefence.swf",
-    "icon": "/images/bloonstowerdefence.PNG",
+    "icon": "/images/bloonstowerdefence.jpg",
     "subtitle": "FLASH · TOWER DEFENSE"
   },
   {
@@ -822,7 +822,7 @@
     "title": "Bloxorz",
     "type": "flash",
     "url": "/games/flash/bloxorz.swf",
-    "icon": "/images/bloxorz.PNG",
+    "icon": "/images/bloxorz.jpg",
     "subtitle": "FLASH · PUZZLE"
   },
   {
@@ -830,7 +830,7 @@
     "title": "Bob the Robber",
     "type": "flash",
     "url": "/games/flash/bobtherobber.swf",
-    "icon": "/images/bobtherobber.PNG",
+    "icon": "/images/bobtherobber.jpg",
     "subtitle": "FLASH · STEALTH"
   },
   {
@@ -838,7 +838,7 @@
     "title": "Checkers",
     "type": "flash",
     "url": "/games/flash/checkers.swf",
-    "icon": "/images/checkers.PNG",
+    "icon": "/images/checkers.jpg",
     "subtitle": "FLASH · BOARD GAME"
   },
   {
