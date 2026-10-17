@@ -2621,5 +2621,255 @@ function renderDiscordText(container, content) {
   );
 }
 </script>
+<style>
+  .play-area {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .play-area.arcade-locked > :not(#arcadeBoostGate) {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  #arcadeBoostGate {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    overflow: auto;
+    border-radius: 12px;
+    background: rgba(17, 18, 20, 0.65);
+  }
+
+  #arcadeBoostGate[hidden] {
+    display: none;
+  }
+
+  .boost-gate-card {
+    width: min(100%, 400px);
+    padding: 32px 24px;
+    text-align: center;
+    color: #f2f3f5;
+    background: #232428;
+    border: 1px solid #45474f;
+    border-radius: 18px;
+    box-shadow: 0 20px 70px #0007;
+  }
+
+  .boost-gate-icon {
+    font-size: 38px;
+    margin-bottom: 14px;
+  }
+
+  .boost-gate-card h2 {
+    margin: 0 0 12px;
+    font-size: 25px;
+  }
+
+  .boost-gate-card p {
+    margin: 0 0 22px;
+    color: #b5bac1;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  #boostGateButton {
+    width: 100%;
+    padding: 13px 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #b9f77d;
+    color: #182116;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  #boostGateButton:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+</style>
+
+<script>
+(() => {
+  const area = document.querySelector(".play-area");
+  if (!area || document.getElementById("arcadeBoostGate")) return;
+
+  let allowed = false;
+  let needsLogin = false;
+  let pending = null;
+
+  const gate = document.createElement("div");
+  gate.id = "arcadeBoostGate";
+  gate.innerHTML = `
+    <section class="boost-gate-card" aria-labelledby="boostGateTitle">
+      <div class="boost-gate-icon" aria-hidden="true">🔒</div>
+      <h2 id="boostGateTitle">Boost Wolfpac to Play</h2>
+      <p id="boostGateMessage" role="status" aria-live="polite">
+        Checking your arcade access…
+      </p>
+      <button id="boostGateButton" type="button" disabled>
+        Checking…
+      </button>
+    </section>
+  `;
+  area.append(gate);
+
+  const message = gate.querySelector("#boostGateMessage");
+  const button = gate.querySelector("#boostGateButton");
+
+  function setLocked(locked) {
+    allowed = !locked;
+    area.classList.toggle("arcade-locked", locked);
+    gate.hidden = !locked;
+
+    for (const child of area.children) {
+      if (child !== gate) child.inert = locked;
+    }
+
+    if (locked) {
+      game.pause();
+      document.querySelector("#stage iframe")?.remove();
+    }
+  }
+
+  setLocked(true);
+
+  // Block the built-in helicopter's start and resume handlers.
+  for (const name of ["start", "resume"]) {
+    const original = game[name].bind(game);
+    game[name] = function(...args) {
+      if (!allowed) return;
+      return original(...args);
+    };
+  }
+
+  // Verify access before selecting any game.
+  const originalSelectGame = selectGame;
+  selectGame = async function(id) {
+    if (!await checkAccess()) return;
+    return originalSelectGame(id);
+  };
+
+  async function requestAccess() {
+    button.disabled = true;
+    button.textContent = "Checking…";
+
+    try {
+      const response = await fetch(
+        "https://api.discordarcade.com/api/arcade/access",
+        {
+          credentials: "include",
+          cache: "no-store",
+          signal: AbortSignal.timeout(12000)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to verify boost status.");
+      }
+
+      const data = await response.json();
+      needsLogin = data.authenticated === false;
+
+      if (data.allowed === true) {
+        setLocked(false);
+        return true;
+      }
+
+      setLocked(true);
+
+      message.textContent = needsLogin
+        ? "Sign in with Discord so we can check your Wolfpac boost status."
+        : data.reason === "membership"
+          ? "Join Wolfpac and boost the server to unlock the arcade."
+          : "Support the server and unlock the arcade. Already boosting? Check your status below.";
+
+      button.textContent = needsLogin
+        ? "Sign in with Discord"
+        : "Check My Boost Status";
+
+      return false;
+    } catch (error) {
+      setLocked(true);
+      needsLogin = false;
+      message.textContent =
+        "We couldn’t verify your boost status. Please try again.";
+      button.textContent = "Try Again";
+      return false;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function checkAccess() {
+    if (!pending) {
+      pending = requestAccess().finally(() => {
+        pending = null;
+      });
+    }
+    return pending;
+  }
+
+  button.onclick = async () => {
+    if (!needsLogin) {
+      await checkAccess();
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Opening Discord…";
+
+    try {
+      const response = await fetch(
+        "https://api.discordarcade.com/api/arcade/auth/login",
+        { credentials: "include", cache: "no-store" }
+      );
+
+      if (!response.ok) throw new Error("Login unavailable.");
+
+      const data = await response.json();
+      window.location.assign(data.url);
+    } catch {
+      message.textContent = "Couldn’t open Discord login. Try again.";
+      button.textContent = "Sign in with Discord";
+      button.disabled = false;
+    }
+  };
+
+  // Lock immediately when the existing sign-out flow runs.
+  const originalDisconnect = disconnect;
+  disconnect = function(...args) {
+    setLocked(true);
+    needsLogin = true;
+    message.textContent = "Sign in with Discord to unlock the arcade.";
+    button.textContent = "Sign in with Discord";
+    return originalDisconnect(...args);
+  };
+
+  // Keep newly rendered game-list elements locked too.
+  new MutationObserver(() => {
+    if (allowed) return;
+    for (const child of area.children) {
+      if (child !== gate) child.inert = true;
+    }
+  }).observe(area, { childList: true });
+
+  checkAccess();
+
+  setInterval(() => {
+    if (!document.hidden) checkAccess();
+  }, 60000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkAccess();
+  });
+})();
+</script>
 </body>
 </html>
