@@ -794,14 +794,6 @@
     "subtitle": "FLASH · STRATEGY"
   },
   {
-    "id": "badicecream3",
-    "title": "Bad Ice Cream 3",
-    "type": "flash",
-    "url": "/games/flash/badicecream3.swf",
-    "icon": "/images/badicecream3.PNG",
-    "subtitle": "FLASH · ARCADE"
-  },
-  {
     "id": "bloons",
     "title": "Bloons",
     "type": "flash",
