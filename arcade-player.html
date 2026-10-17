@@ -35,6 +35,22 @@
       height: 100%;
     }
 
+    /* Stop mobile text selection and long-press callouts on games. */
+    #stage,
+    #stage *,
+    #game,
+    #game * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    
+    #stage canvas,
+    #game canvas,
+    #game ruffle-player {
+      touch-action: none;
+    }
+    
     #status {
       position: absolute;
       inset: 0;
