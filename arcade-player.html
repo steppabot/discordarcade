@@ -237,5 +237,13 @@
 
     start().catch(showError);
   </script>
+  <script>
+  document.addEventListener("contextmenu", event => {
+    if (event.target instanceof Element &&
+        event.target.closest("#stage, #game")) {
+      event.preventDefault();
+    }
+  });
+  </script>
 </body>
 </html>
