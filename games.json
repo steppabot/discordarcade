@@ -28,5 +28,14 @@
     "url": "/games/snes/supermarioworld.sfc",
     "icon": "https://dl.vimm.net/image.php?type=box_large&id=1652",
     "subtitle": "SNES · PLATFORMER"
+  },
+  {
+    "id": "tecmosuperbowl",
+    "title": "Tecmo Super Bowl",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/tecmosuperbowl.sfc",
+    "icon": "",
+    "subtitle": "SNES · PLATFORMER"
   }
 ]
