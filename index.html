@@ -2180,5 +2180,222 @@ connect();
   scrollToLatest();
 })();
 </script>
+<style>
+  .arcade-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .arcade-category {
+    padding: 9px 15px;
+    border: 1px solid #45474f;
+    border-radius: 8px;
+    background: #2b2d31;
+    color: #b5bac1;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .arcade-category:hover {
+    background: #383a40;
+    color: white;
+  }
+
+  .arcade-category[aria-pressed="true"] {
+    background: var(--lime, #b9f77d);
+    border-color: var(--lime, #b9f77d);
+    color: #182116;
+  }
+
+  #gameList .game-card[hidden] {
+    display: none !important;
+  }
+
+  .arcade-category-empty {
+    padding: 22px;
+    margin: 0 0 20px;
+    border: 1px dashed #45474f;
+    border-radius: 10px;
+    color: #b5bac1;
+    text-align: center;
+  }
+
+  .arcade-category-empty[hidden] {
+    display: none;
+  }
+</style>
+
+<script>
+(() => {
+  if (document.getElementById("arcadeCategories")) return;
+
+  const list = document.getElementById("gameList");
+  if (!list) return;
+
+  const originalValidate = validateCatalog;
+  const originalRender = renderGameCards;
+
+  let category = "all";
+
+  const categories = document.createElement("nav");
+  categories.id = "arcadeCategories";
+  categories.className = "arcade-categories";
+  categories.setAttribute("aria-label", "Game categories");
+
+  const empty = document.createElement("p");
+  empty.className = "arcade-category-empty";
+  empty.textContent = "More games coming soon.";
+  empty.hidden = true;
+
+  list.before(categories);
+  list.after(empty);
+
+  const options = [
+    ["all", "All"],
+    ["retro", "Retro"],
+    ["flash", "Flash"],
+    ["browser", "Browser Games"]
+  ];
+
+  for (const [value, label] of options) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "arcade-category";
+    button.dataset.category = value;
+    button.textContent = label;
+
+    button.onclick = () => {
+      category = value;
+      filterCards();
+    };
+
+    categories.append(button);
+  }
+
+  function filterCards() {
+    let visible = 0;
+
+    for (const card of list.querySelectorAll(".game-card")) {
+      const id = card.dataset.id ||
+        (card.id === "helicopterCard" ? "helicopter" : "");
+
+      const entry = allGames.find(game => game.id === id);
+      const type = entry?.type || "browser";
+
+      const show = category === "all" || category === type;
+      card.hidden = !show;
+
+      const selected = id === activeGame;
+      card.classList.toggle("selected", selected);
+      card.setAttribute("aria-pressed", String(selected));
+
+      if (show) visible++;
+    }
+
+    for (const button of categories.children) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.category === category)
+      );
+    }
+
+    empty.hidden = visible > 0;
+
+    document.getElementById("gameCount").textContent =
+      `${visible} GAME${visible === 1 ? "" : "S"} AVAILABLE`;
+  }
+
+  function httpsURL(value) {
+    if (typeof value !== "string" || !value.trim()) {
+      throw new Error("A game is missing its URL.");
+    }
+
+    const url = new URL(value, document.baseURI);
+
+    if (url.protocol !== "https:") {
+      throw new Error("Game files must use HTTPS.");
+    }
+
+    return url.href;
+  }
+
+  validateCatalog = function(items) {
+    if (!Array.isArray(items)) {
+      throw new Error("games.json must contain an array.");
+    }
+
+    const types = [];
+
+    const prepared = items.map(entry => {
+      if (!entry || typeof entry !== "object") {
+        throw new Error("Invalid game entry.");
+      }
+
+      const type = entry.type || "browser";
+
+      if (!["browser", "retro", "flash"].includes(type)) {
+        throw new Error(`Unknown game type: ${type}`);
+      }
+
+      types.push(type);
+
+      const gameURL = httpsURL(entry.url);
+      let playerURL = gameURL;
+
+      if (type !== "browser") {
+        const player = new URL("arcade-player.html", document.baseURI);
+
+        player.searchParams.set("type", type);
+        player.searchParams.set("url", gameURL);
+        player.searchParams.set("title", entry.title || "Arcade");
+
+        if (type === "retro") {
+          if (
+            typeof entry.core !== "string" ||
+            !/^[a-z0-9_-]+$/i.test(entry.core)
+          ) {
+            throw new Error(
+              `Choose an emulator core for ${entry.title || entry.id}.`
+            );
+          }
+
+          player.searchParams.set("core", entry.core);
+
+          if (entry.bios) {
+            player.searchParams.set("bios", httpsURL(entry.bios));
+          }
+        }
+
+        playerURL = player.href;
+      }
+
+      return {
+        ...entry,
+        url: playerURL,
+        subtitle: entry.subtitle || type.toUpperCase()
+      };
+    });
+
+    return originalValidate(prepared).map((entry, index) => ({
+      ...entry,
+      type: types[index]
+    }));
+  };
+
+  renderGameCards = function(entries) {
+    originalRender(entries);
+    filterCards();
+  };
+
+  filterCards();
+
+  // Reload using the extended catalog format.
+  loadGameCatalog();
+})();
+</script>
 </body>
 </html>
