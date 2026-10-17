@@ -126,6 +126,30 @@
     }
 
     async function start() {
+      const accessResponse = await fetch(
+        "https://api.discordarcade.com/api/arcade/access",
+        {
+          credentials: "include",
+          cache: "no-store",
+          signal: AbortSignal.timeout(12000)
+        }
+      );
+
+      if (!accessResponse.ok) {
+        throw new Error("Could not verify your Wolfpac boost status.");
+      }
+
+      const access = await accessResponse.json();
+
+      if (access.allowed !== true) {
+        message.textContent = access.authenticated === false
+          ? "Sign in at DiscordArcade.com to play."
+          : "Boost Wolfpac to unlock the arcade.";
+
+        retry.textContent = "Check Again";
+        retry.hidden = false;
+        return;
+      }
       const type = params.get("type");
       const url = fileURL(params.get("url"));
       const title = params.get("title") || "Discord Arcade";
