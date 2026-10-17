@@ -1753,7 +1753,14 @@ function renderMessages(items) {
 
     const text = document.createElement('div');
     text.className = 'message-text';
-    text.textContent = m.content || ((m.attachments || []).length ? '' : '(Embed or content unavailable)');
+    renderDiscordText(
+      text,
+      m.content || (
+        (m.attachments || []).length
+          ? ""
+          : "(Embed or content unavailable)"
+      )
+    );
 
     for (const attachment of m.attachments || []) {
       const link = document.createElement('a');
@@ -2536,6 +2543,83 @@ connect();
     }
   }, { passive: false });
 })();
+</script>
+<style>
+  .message-text img.discord-custom-emoji {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    max-width: none;
+    margin: 0 2px;
+    border: 0;
+    border-radius: 0;
+    vertical-align: middle;
+    object-fit: contain;
+    background: transparent;
+  }
+
+  .message-text.emoji-only img.discord-custom-emoji {
+    width: 44px;
+    height: 44px;
+    margin: 3px;
+  }
+</style>
+
+<script>
+function renderDiscordText(container, content) {
+  const text = String(content || "");
+  const pattern = /<(a?):([A-Za-z0-9_]+):(\d{15,22})>/g;
+  const matches = [...text.matchAll(pattern)];
+
+  container.replaceChildren();
+  container.classList.toggle(
+    "emoji-only",
+    matches.length > 0 &&
+    matches.length <= 10 &&
+    text.replace(pattern, "").trim() === ""
+  );
+
+  let position = 0;
+
+  for (const match of matches) {
+    const [token, animated, name, id] = match;
+
+    container.append(
+      document.createTextNode(text.slice(position, match.index))
+    );
+
+    const image = document.createElement("img");
+    image.className = "discord-custom-emoji";
+    image.alt = `:${name}:`;
+    image.title = `:${name}:`;
+    image.width = 22;
+    image.height = 22;
+    image.decoding = "async";
+    image.draggable = false;
+
+    const base = `https://cdn.discordapp.com/emojis/${id}`;
+    image.src = `${base}.${animated ? "gif" : "png"}?size=96`;
+
+    let triedStatic = !animated;
+
+    image.onerror = () => {
+      if (!triedStatic) {
+        triedStatic = true;
+        image.src = `${base}.png?size=96`;
+        return;
+      }
+
+      image.replaceWith(document.createTextNode(`:${name}:`));
+    };
+
+    container.append(image);
+    position = match.index + token.length;
+  }
+
+  container.append(
+    document.createTextNode(text.slice(position))
+  );
+}
 </script>
 </body>
 </html>
