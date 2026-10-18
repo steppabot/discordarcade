@@ -3924,5 +3924,306 @@ function renderMessageReactions(body, reactions) {
   if (bar.childElementCount) body.append(bar);
 }
 </script>
+<style>
+  #helicopterLeaderboardButton {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border: 1px solid #51425f;
+    border-radius: 8px;
+    background: #292137;
+    color: #f4f1fc;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  #helicopterLeaderboard {
+    width: min(460px, calc(100% - 24px));
+    max-height: 80dvh;
+    padding: 20px;
+    overflow: auto;
+    border: 1px solid #51425f;
+    border-radius: 16px;
+    background: #201c30;
+    color: #f4f1fc;
+  }
+
+  #helicopterLeaderboard::backdrop {
+    background: #090711bb;
+  }
+
+  .leaderboard-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .leaderboard-heading h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .leaderboard-heading button {
+    padding: 6px 10px;
+    background: transparent;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .leaderboard-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .leaderboard-tabs button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    background: #342b43;
+    color: white;
+    cursor: pointer;
+  }
+
+  .leaderboard-tabs button[aria-pressed="true"] {
+    background: #2ed7e9;
+    color: #15102e;
+  }
+
+  #helicopterRanking {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .leaderboard-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid #ffffff12;
+  }
+
+  .leaderboard-row .player-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .leaderboard-row strong {
+    color: #2ed7e9;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #leaderboardStatus,
+  .leaderboard-note {
+    color: #bcb5ce;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+(() => {
+  if (document.getElementById("helicopterLeaderboard")) return;
+
+  const toolbar = document.querySelector(".game-toolbar");
+
+  const button = document.createElement("button");
+  button.id = "helicopterLeaderboardButton";
+  button.type = "button";
+  button.textContent = "🏆 Scores";
+  button.setAttribute("aria-label", "Helicopter leaderboard");
+  toolbar.append(button);
+
+  const dialog = document.createElement("dialog");
+  dialog.id = "helicopterLeaderboard";
+  dialog.setAttribute("aria-labelledby", "leaderboardTitle");
+  dialog.innerHTML = `
+    <div class="leaderboard-heading">
+      <h2 id="leaderboardTitle">Helicopter leaderboard</h2>
+      <button type="button" aria-label="Close leaderboard">×</button>
+    </div>
+    <div class="leaderboard-tabs">
+      <button type="button" data-period="all"
+              aria-pressed="true">All time</button>
+      <button type="button" data-period="daily"
+              aria-pressed="false">Today</button>
+    </div>
+    <p id="leaderboardStatus" role="status"></p>
+    <ol id="helicopterRanking"></ol>
+    <p class="leaderboard-note">
+      Best distance per player · meters<br>
+      Daily rankings reset at midnight UTC.
+      Sign in before starting a run to save your score.
+    </p>
+  `;
+  document.body.append(dialog);
+
+  const list = dialog.querySelector("#helicopterRanking");
+  const status = dialog.querySelector("#leaderboardStatus");
+
+  let period = "all";
+  let requestVersion = 0;
+  let starting = false;
+  let currentRun = null;
+
+  async function loadLeaderboard() {
+    const version = ++requestVersion;
+    status.textContent = "Loading scores…";
+    list.replaceChildren();
+
+    try {
+      const result = await api(
+        "/api/leaderboards/helicopter?period=" + period
+      );
+
+      if (version !== requestVersion) return;
+
+      for (const entry of result.entries || []) {
+        const row = document.createElement("li");
+        row.className = "leaderboard-row";
+
+        const rank = document.createElement("span");
+        rank.textContent = "#" + entry.rank;
+
+        const name = document.createElement("span");
+        name.className = "player-name";
+        name.textContent = entry.name;
+
+        const score = document.createElement("strong");
+        score.textContent = Number(entry.score).toLocaleString() + " m";
+
+        row.append(rank, name, score);
+        list.append(row);
+      }
+
+      status.textContent = list.childElementCount
+        ? ""
+        : "No scores yet. Set the first one!";
+    } catch (error) {
+      if (version === requestVersion) {
+        status.textContent = error.message || "Could not load scores.";
+      }
+    }
+  }
+
+  button.onclick = () => {
+    game.pause();
+    if (!dialog.open) dialog.showModal();
+    loadLeaderboard();
+  };
+
+  dialog.querySelector(".leaderboard-heading button").onclick =
+    () => dialog.close();
+
+  dialog.querySelectorAll("[data-period]").forEach(tab => {
+    tab.onclick = () => {
+      period = tab.dataset.period;
+
+      dialog.querySelectorAll("[data-period]").forEach(other => {
+        other.setAttribute(
+          "aria-pressed",
+          String(other.dataset.period === period)
+        );
+      });
+
+      loadLeaderboard();
+    };
+  });
+
+  const originalStart = game.start.bind(game);
+  const originalCrash = game.crash.bind(game);
+
+  game.start = function() {
+    if (starting || activeGame !== "helicopter") return;
+
+    currentRun = null;
+
+    // Guests can play immediately without submitting scores.
+    if (!session) {
+      originalStart();
+      return;
+    }
+
+    const signedInSession = session;
+    starting = true;
+    notice("Starting ranked run…");
+
+    api("/api/leaderboards/helicopter/start", {
+      method: "POST"
+    })
+      .then(result => {
+        if (
+          activeGame !== "helicopter" ||
+          session !== signedInSession ||
+          dialog.open
+        ) return;
+
+        currentRun = {
+          id: result.run_id,
+          session: signedInSession,
+          submitted: false
+        };
+
+        originalStart();
+      })
+      .catch(error => {
+        // Keep the game playable if ranking is temporarily unavailable.
+        if (
+          activeGame === "helicopter" &&
+          session === signedInSession &&
+          !dialog.open
+        ) {
+          notice(
+            "Playing without score submission: " +
+            (error.message || "Leaderboard unavailable.")
+          );
+          originalStart();
+        }
+      })
+      .finally(() => {
+        starting = false;
+      });
+  };
+
+  game.crash = function() {
+    const wasPlaying = game.state === "playing";
+    const score = game.model.distance;
+    const run = currentRun;
+
+    originalCrash();
+
+    if (
+      !wasPlaying ||
+      !run ||
+      run.submitted ||
+      session !== run.session
+    ) return;
+
+    run.submitted = true;
+
+    api("/api/leaderboards/helicopter/finish", {
+      method: "POST",
+      body: JSON.stringify({
+        run_id: run.id,
+        score
+      })
+    })
+      .then(() => {
+        notice("Score saved: " + score.toLocaleString() + " m");
+        if (dialog.open) loadLeaderboard();
+      })
+      .catch(error => {
+        notice(
+          "Score not saved: " +
+          (error.message || "Please try another run.")
+        );
+      });
+  };
+})();
+</script>
 </body>
 </html>
