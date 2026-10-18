@@ -576,15 +576,19 @@ dialog .btn { margin-top: 12px; }
   </div>
 
   <div class="layout">
-    <aside class="chat" aria-label="Discord server chat">
+    <section class="community" aria-label="Your Discord communities">
+      <nav id="serverRail" class="server-rail" aria-label="Your servers" hidden></nav>
+      <aside id="channelSidebar" class="channel-sidebar" aria-label="Server channels" hidden>
+        <div class="channel-sidebar-title">CHANNELS</div>
+        <nav id="channels" class="channel-tabs" aria-label="Server channels"></nav>
+      </aside>
+      <aside class="chat" aria-label="Discord server chat">
       <div class="chat-top">
         <div class="chat-title">
-          <h2 id="serverName">Your Discord community</h2>
+          <h2 id="serverName">Sign in to view your servers</h2>
           <span id="connection" class="pill">DISCONNECTED</span>
         </div>
-        <nav class="channel-tabs" id="channels" aria-label="Server channels">
-          <span class="channel active"># server-chat</span>
-        </nav>
+
       </div>
 
       <div class="chat-body" id="chatBody">
@@ -594,7 +598,7 @@ dialog .btn { margin-top: 12px; }
             <div class="bubble second"><span></span><span></span><span></span></div>
           </div>
           <h3>Your people.<br>Your place.</h3>
-          <p>Connect with your Discord account to<br>chat with members of this server<br>while you play.</p>
+          <p>Connect with your Discord account to<br>chat in your available server channels<br>while you play.</p>
           <button class="btn discord login">Sign in with Discord ↗</button>
           <p class="hint" id="chatHint">Games are ready. Connecting to chat…</p>
         </div>
@@ -636,6 +640,7 @@ dialog .btn { margin-top: 12px; }
         <p class="chat-note" id="chatNote">Only your server. Chat while you play.</p>
       </div>
     </aside>
+    </section>
 
     <section class="play-area" aria-label="Arcade games">
       <div class="game-toolbar">
@@ -1521,11 +1526,17 @@ async function loadGameCatalog() {
 renderGameCards(ARCADE_GAMES);
 loadGameCatalog();
 
+let selectedGuild = null;
+let serverList = [];
+let serverGeneration = 0;
 async function api(path, options = {}) {
-  const url = path.startsWith('/auth/')
+  let url = path.startsWith('/auth/')
     ? API_ROOT + '/arcade' + path
     : API_ROOT + '/arcade' + path.slice(4);
 
+  if (selectedGuild && /^\/api\/(channels|messages)(\?|$)/.test(path)) {
+    url += (url.includes('?') ? '&' : '?') + 'guild=' + encodeURIComponent(selectedGuild);
+  }
   const response = await fetch(url, {
     credentials: 'include',
     ...options,
@@ -1579,6 +1590,12 @@ let reconnectTimer = null;
 let refreshQueued = false;
 
 function disconnect(message) {
+  serverGeneration++;
+  selectedGuild = null; channelId = null; serverList = []; channels = [];
+  $('serverName').textContent = 'Sign in to view your servers';
+  $('channels').replaceChildren(); $('serverRail').replaceChildren();
+  $('serverRail').hidden = true; $('channelSidebar').hidden = true;
+  document.querySelector('.community').classList.remove('has-server');
   session = null;
   stopLive();
   clearAttachments();
@@ -1812,6 +1829,7 @@ function startLive() {
   const url = new URL(API_ROOT + '/arcade/live');
   url.protocol = 'wss:';
   url.searchParams.set('channel', selected);
+  url.searchParams.set('guild', selectedGuild);
   url.searchParams.set('csrf', session.csrf);
 
   const socket = new WebSocket(url);
@@ -1861,6 +1879,7 @@ async function poll() {
       $('chatNote').textContent = 'Live updates · Connected to your Discord server.';
     }
   } catch (error) {
+    if (!session || current !== channelId) return;
     delay = Math.max(5000, (error.retryAfter || 10) * 1000);
 
     if (error.status === 401) {
@@ -1903,49 +1922,102 @@ async function selectChannel(id) {
   else refreshQueued = true;
 }
 
+function drawServers() {
+  const rail = $('serverRail'); rail.replaceChildren(); rail.hidden = false;
+  for (const server of serverList) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'server-icon';
+    button.title = server.name; button.setAttribute('aria-label', server.name);
+    button.setAttribute('aria-pressed', String(server.id === selectedGuild));
+    const fallback = () => {button.textContent = server.name.slice(0, 2).toUpperCase();};
+    if (server.icon) {
+      const image = document.createElement('img'); image.src = server.icon; image.alt = '';
+      image.onerror = fallback; button.append(image);
+    } else fallback();
+    button.onclick = () => selectServer(server.id);
+    rail.append(button);
+  }
+  const refresh = document.createElement('button'); refresh.type = 'button';
+  refresh.className = 'server-icon refresh-servers'; refresh.textContent = '↻';
+  refresh.title = 'Refresh servers'; refresh.setAttribute('aria-label', 'Refresh servers');
+  refresh.onclick = async () => {
+    refresh.disabled = true;
+    try { await loadServers(); } catch(error) { notice(error.message); }
+    finally { refresh.disabled = false; }
+  };
+  rail.append(refresh);
+}
+
+async function loadServers() {
+  const currentSession = session;
+  const data = await api('/api/servers');
+  if (!session || session !== currentSession) return;
+  serverList = data.servers || [];
+  drawServers();
+  if (serverList.length) {
+    const id = serverList.some(s => s.id === selectedGuild) ? selectedGuild : serverList[0].id;
+    await selectServer(id);
+  } else {
+    serverGeneration++; selectedGuild = null; channelId = null; stopLive();clearTimeout(pollTimer);
+    channels = []; $('channels').replaceChildren(); $('messages').replaceChildren(); setWritable(false);
+    $('channelSidebar').hidden = true;
+    document.querySelector('.community').classList.remove('has-server');
+    $('serverName').textContent = 'Your servers'; $('connection').textContent = 'NO SERVERS';
+    $('chatNote').textContent = 'No shared servers yet. Token needs to be installed in a server you belong to, then refresh this list.';
+  }
+}
+
+async function selectServer(id) {
+  const server = serverList.find(s => s.id === id);
+  if (!server || !session) return;
+  const generation = ++serverGeneration;
+  selectedGuild = id; channelId = null; channels = [];
+  stopLive(); clearTimeout(pollTimer); clearAttachments(); setWritable(false);
+  $('messages').replaceChildren(); $('channels').replaceChildren();
+  $('serverName').textContent = server.name; $('connection').textContent = 'LOADING';
+  $('chatNote').textContent = 'Loading your available channels…';
+  $('channelSidebar').hidden = false;
+  document.querySelector('.community').classList.add('has-server');
+  drawServers();
+  try {
+    const response = await api('/api/channels');
+    if (generation !== serverGeneration || !session) return;
+    channels = response.channels || [];
+    let category = null;
+    for (const channel of channels) {
+      if (channel.category !== category) {
+        category = channel.category;
+        const heading = document.createElement('div'); heading.className = 'channel-group';
+        heading.textContent = category || 'Text channels'; $('channels').append(heading);
+      }
+      const button = document.createElement('button');button.type = 'button';button.className = 'channel';
+      button.textContent = '# ' + channel.name;button.title = channel.name;button.dataset.id = channel.id;
+      button.onclick = () => selectChannel(channel.id);$('channels').append(button);
+    }
+    if (channels.length) await selectChannel(channels[0].id);
+    else {$('connection').textContent = 'NO CHANNELS';$('chatNote').textContent = 'No text channels are available to both you and Token in this server.';}
+  } catch(error) {
+    if (generation !== serverGeneration) return;
+    if (error.status === 401) disconnect('Sign in again.');
+    else {$('connection').textContent = 'UNAVAILABLE';$('chatNote').textContent = error.message;}
+  }
+}
+
 async function connect() {
   if (location.protocol === 'file:') return;
-
   try {
-    const config = await api('/api/config');
-    configured = config.configured;
-    $('serverName').textContent = config.serverName || 'Your Discord community';
+    const config = await api('/api/config'); configured = config.configured;
+    $('serverName').textContent = 'Sign in to view your servers';
     if (!configured) return;
-
-    $('chatHint').textContent = 'Members of this server only.';
-
-    const result = await api('/api/me');
-    if (!result.user) return;
-
+    $('chatHint').textContent = 'Sign in to see your servers with Token.';
+    const result = await api('/api/me'); if (!result.user) return;
     session = result;
-    $('chatEmpty').classList.add('hide');
-    $('messages').classList.remove('hide');
+    $('chatEmpty').classList.add('hide'); $('messages').classList.remove('hide');
     $('logout').classList.remove('hide');
     document.querySelectorAll('.login').forEach(b => b.classList.add('hide'));
     $('connection').textContent = 'CONNECTING';
-
-    const response = await api('/api/channels');
-    channels = response.channels;
-    $('channels').replaceChildren();
-
-    for (const channel of channels) {
-      const button = document.createElement('button');
-      button.className = 'channel';
-      button.textContent = '# ' + channel.name;
-      button.dataset.id = channel.id;
-      button.onclick = () => selectChannel(channel.id);
-      $('channels').append(button);
-    }
-
-    if (channels.length) {
-      await selectChannel(channels[0].id);
-    } else {
-      $('chatNote').textContent = 'No configured channels are available to your Discord account.';
-      $('connection').textContent = 'NO CHANNELS';
-    }
-  } catch (error) {
-    disconnect(error.status === 401 ? 'Sign in to join your server.' : error.message);
-  }
+    await loadServers();
+  } catch(error) { disconnect(error.status === 401 ? 'Sign in to view your servers.' : error.message); }
 }
 
 $('chatForm').onsubmit = async event => {
@@ -2672,74 +2744,6 @@ function renderDiscordText(container, content, mentions = []) {
     font-weight: 600;
   }
 
-  .play-area.arcade-locked > :not(#arcadeBoostGate) {
-    filter: blur(8px);
-    pointer-events: none;
-    user-select: none;
-  }
-
-  #arcadeBoostGate {
-    position: absolute;
-    inset: 0;
-    z-index: 100;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    overflow: auto;
-    border-radius: 12px;
-    background: rgba(17, 18, 20, 0.65);
-  }
-
-  #arcadeBoostGate[hidden] {
-    display: none;
-  }
-
-  .boost-gate-card {
-    width: min(100%, 400px);
-    padding: 32px 24px;
-    text-align: center;
-    color: #f2f3f5;
-    background: #232428;
-    border: 1px solid #45474f;
-    border-radius: 18px;
-    box-shadow: 0 20px 70px #0007;
-  }
-
-  .boost-gate-icon {
-    font-size: 38px;
-    margin-bottom: 14px;
-  }
-
-  .boost-gate-card h2 {
-    margin: 0 0 12px;
-    font-size: 25px;
-  }
-
-  .boost-gate-card p {
-    margin: 0 0 22px;
-    color: #b5bac1;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  #boostGateButton {
-    width: 100%;
-    padding: 13px 18px;
-    border: 0;
-    border-radius: 9px;
-    background: #b9f77d;
-    color: #182116;
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  #boostGateButton:disabled {
-    opacity: 0.6;
-    cursor: wait;
-
-
-  }
 </style>
 
 
@@ -3216,4 +3220,21 @@ body.chat-collapsed .chat{display:none}body.chat-collapsed .layout{grid-template
  };
 })();
 </script>
+<style>
+.community{display:grid;grid-template-columns:54px minmax(0,1fr);min-width:0;min-height:0;gap:0;border:1px solid #393544;border-radius:14px;overflow:hidden;background:#202127}
+.community:has(#serverRail[hidden]){grid-template-columns:minmax(0,1fr)}
+.community.has-server{grid-template-columns:54px 138px minmax(0,1fr)}
+.community .chat{border:0;border-radius:0;min-width:0;height:100%;min-height:0;max-height:none}
+.server-rail{display:flex;flex-direction:column;gap:10px;align-items:center;padding:12px 5px;overflow:auto;background:#19181f;scrollbar-width:thin}
+.server-rail[hidden],.channel-sidebar[hidden]{display:none}
+.server-icon{width:40px;height:40px;flex-shrink:0;border-radius:14px;background:#36313e;overflow:hidden;border:2px solid transparent;padding:0;font-size:12px;font-weight:700;color:#e6deee}
+.server-icon img{width:100%;height:100%;object-fit:cover}.server-icon[aria-pressed=true]{border-color:#2ed7e9;border-radius:12px}.server-icon:hover{border-color:#ff45ad}.refresh-servers{color:#2ed7e9;font-size:24px}
+.channel-sidebar{background:#25262c;overflow:auto;min-height:0;padding:12px 7px;scrollbar-width:thin}
+.channel-sidebar-title{font-size:9px;color:#aaa3b7;letter-spacing:1.5px;margin:5px 5px 14px}
+.channel-sidebar .channel-tabs{display:flex;flex-direction:column;gap:3px;padding:0;overflow:visible}.channel-sidebar .channel{flex-shrink:0;text-align:left;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;width:100%;padding:8px 6px;font-size:11px}.channel-group{font-size:9px;text-transform:uppercase;font-weight:700;color:#aaa6b2;margin:12px 5px 6px;overflow-wrap:anywhere}.community .chat-top{padding:15px 12px}.community .chat-title{flex-wrap:wrap}.community .chat-title h2{overflow-wrap:anywhere}.community .chat-note{overflow-wrap:anywhere}
+body.chat-collapsed .community{display:none}
+@media(min-width:1001px){.layout{grid-template-columns:minmax(480px,42%) minmax(0,1fr)}}
+@media(min-width:701px) and (max-width:1000px){.layout{grid-template-columns:minmax(350px,45%) minmax(0,1fr)}.community.has-server{grid-template-columns:46px 104px minmax(0,1fr)}.server-icon{width:34px;height:34px}.community{height:600px}}
+@media(max-width:700px){.community{order:1;height:500px;margin-top:10px}.community.has-server{grid-template-columns:46px 105px minmax(0,1fr)}.community .chat{margin-top:0;order:initial}.server-icon{width:34px;height:34px}.community .chat-title h2{font-size:12px}.community .composer{padding:5px;gap:4px}.community .chat-bottom{padding:8px}.community .message{padding-left:8px;padding-right:8px}}
+</style>
 </body></html>
