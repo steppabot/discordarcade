@@ -3364,4 +3364,365 @@ function createAttachmentVideo(attachment) {
 
   return box;
 }
-</script></body></html>
+</script>
+<style>
+  .chat-bottom {
+    position: relative;
+  }
+
+  #emojiButton {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    color: #bcb5ce;
+    font-size: 25px;
+    border-radius: 7px;
+  }
+
+  #emojiButton:hover,
+  #emojiButton[aria-expanded="true"] {
+    color: #2ed7e9;
+    background: #ffffff0c;
+  }
+
+  #emojiPicker {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 8px;
+    z-index: 200;
+    width: min(340px, calc(100% - 16px));
+    padding: 12px;
+    border: 1px solid #4a4057;
+    border-radius: 12px;
+    background: #24202e;
+    box-shadow: 0 12px 40px #0008;
+  }
+
+  #emojiPicker[hidden] {
+    display: none;
+  }
+
+  .emoji-picker-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .emoji-picker-tabs button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 7px;
+    background: #332d40;
+    color: #c5bdd3;
+    font-size: 11px;
+  }
+
+  .emoji-picker-tabs button[aria-pressed="true"] {
+    background: #2ed7e9;
+    color: #15102e;
+  }
+
+  #emojiSearch {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #494052;
+    border-radius: 7px;
+    background: #19161f;
+    color: white;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  #emojiGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 4px;
+    max-height: 230px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  #emojiGrid button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    height: 38px;
+    padding: 4px;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 25px;
+  }
+
+  #emojiGrid button:hover,
+  #emojiGrid button:focus-visible {
+    background: #51425f;
+  }
+
+  #emojiGrid img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  #emojiPickerStatus {
+    margin: 8px 0 0;
+    color: #b9b1c8;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+</style>
+
+<script>
+(() => {
+  if (document.getElementById("emojiButton")) return;
+
+  const input = document.getElementById("messageInput");
+  const send = document.getElementById("send");
+  const bottom = document.querySelector(".chat-bottom");
+
+  const button = document.createElement("button");
+  button.id = "emojiButton";
+  button.type = "button";
+  button.textContent = "☺";
+  button.title = "Choose an emoji";
+  button.setAttribute("aria-label", "Choose an emoji");
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-controls", "emojiPicker");
+  send.before(button);
+
+  const picker = document.createElement("section");
+  picker.id = "emojiPicker";
+  picker.hidden = true;
+  picker.setAttribute("aria-label", "Emoji picker");
+
+  picker.innerHTML = `
+    <div class="emoji-picker-tabs">
+      <button type="button" data-tab="regular"
+              aria-pressed="true">Emojis</button>
+      <button type="button" data-tab="server"
+              aria-pressed="false">Server emojis</button>
+    </div>
+    <input id="emojiSearch" type="search"
+           placeholder="Search emojis…" aria-label="Search emojis">
+    <div id="emojiGrid"></div>
+    <p id="emojiPickerStatus" role="status"></p>
+  `;
+
+  bottom.append(picker);
+
+  const search = picker.querySelector("#emojiSearch");
+  const grid = picker.querySelector("#emojiGrid");
+  const status = picker.querySelector("#emojiPickerStatus");
+
+  const regular = [
+    ["😀", "grinning happy"], ["😂", "laugh tears joy"],
+    ["🤣", "rolling laughing"], ["😊", "smile happy"],
+    ["😍", "heart eyes love"], ["🥰", "smiling hearts"],
+    ["😎", "cool sunglasses"], ["🤔", "thinking"],
+    ["😭", "cry sob"], ["😅", "sweat smile"],
+    ["😮", "surprised"], ["😡", "angry"],
+    ["🤯", "mind blown"], ["🥳", "party"],
+    ["😴", "sleep tired"], ["💀", "skull dead"],
+    ["👀", "eyes look"], ["🔥", "fire"],
+    ["❤️", "red heart love"], ["💜", "purple heart"],
+    ["💙", "blue heart"], ["💯", "hundred"],
+    ["👍", "thumbs up yes"], ["👎", "thumbs down no"],
+    ["👏", "clap"], ["🙌", "raised hands celebration"],
+    ["🙏", "pray thanks"], ["💪", "muscle strong"],
+    ["🤝", "handshake"], ["👋", "wave hello"],
+    ["✅", "check yes"], ["❌", "cross no"],
+    ["🎮", "game controller"], ["🕹️", "joystick arcade"],
+    ["🏆", "trophy winner"], ["🥇", "gold medal"],
+    ["🎉", "celebrate party"], ["🚀", "rocket"],
+    ["🍿", "popcorn"], ["🐺", "wolf"]
+  ].map(([token, name]) => ({ token, name }));
+
+  let tab = "regular";
+  let serverEmojis = [];
+  let loading = false;
+  let failure = "";
+  let generation = 0;
+  let selection = [0, 0];
+
+  function close() {
+    generation++;
+    picker.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  }
+
+  function insertEmoji(token) {
+    if (input.disabled || !session || !channelId) return;
+
+    const start = Math.min(selection[0], input.value.length);
+    const end = Math.min(selection[1], input.value.length);
+    const nextLength = input.value.length - (end - start) + token.length;
+
+    if (nextLength > input.maxLength) {
+      status.textContent = "Your message is too long to add another emoji.";
+      return;
+    }
+
+    input.setSelectionRange(start, end);
+    input.setRangeText(token, start, end, "end");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    close();
+    input.focus();
+  }
+
+  function render() {
+    grid.replaceChildren();
+
+    const query = search.value.trim().toLowerCase();
+    const entries = (tab === "regular" ? regular : serverEmojis)
+      .filter(item =>
+        item.name.toLowerCase().includes(query) ||
+        item.token.includes(query)
+      );
+
+    for (const item of entries) {
+      const choice = document.createElement("button");
+      choice.type = "button";
+      choice.title = item.name;
+      choice.setAttribute("aria-label", item.name);
+
+      if (item.url) {
+        const image = document.createElement("img");
+        image.src = item.url;
+        image.alt = `:${item.name}:`;
+        image.loading = "lazy";
+
+        image.onerror = () => {
+          image.remove();
+          choice.textContent = item.name.slice(0, 2);
+          choice.style.fontSize = "12px";
+        };
+
+        choice.append(image);
+      } else {
+        choice.textContent = item.token;
+      }
+
+      choice.onclick = () => insertEmoji(item.token);
+      grid.append(choice);
+    }
+
+    status.textContent =
+      tab === "server" && loading
+        ? "Loading server emojis…"
+        : tab === "server" && failure
+          ? failure
+          : entries.length
+            ? ""
+            : query
+              ? "No matching emojis."
+              : "No available emojis in this server.";
+  }
+
+  async function loadServerEmojis() {
+    const current = ++generation;
+    const guild = selectedGuild;
+    const channel = channelId;
+
+    serverEmojis = [];
+    failure = "";
+    loading = true;
+    render();
+
+    try {
+      const result = await api(
+        "/api/emojis?guild=" + encodeURIComponent(guild) +
+        "&channel=" + encodeURIComponent(channel)
+      );
+
+      if (
+        current !== generation ||
+        guild !== selectedGuild ||
+        channel !== channelId ||
+        !session
+      ) return;
+
+      serverEmojis = result.emojis || [];
+    } catch (error) {
+      if (current !== generation) return;
+      failure = error.message || "Could not load server emojis.";
+    } finally {
+      if (current === generation) {
+        loading = false;
+        render();
+      }
+    }
+  }
+
+  button.onclick = () => {
+    if (!picker.hidden) {
+      close();
+      return;
+    }
+
+    if (input.disabled || !session || !channelId) return;
+
+    selection = [input.selectionStart, input.selectionEnd];
+    picker.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    search.value = "";
+    search.focus();
+    loadServerEmojis();
+  };
+
+  picker.querySelectorAll("[data-tab]").forEach(item => {
+    item.onclick = () => {
+      tab = item.dataset.tab;
+
+      picker.querySelectorAll("[data-tab]").forEach(other => {
+        other.setAttribute(
+          "aria-pressed",
+          String(other.dataset.tab === tab)
+        );
+      });
+
+      render();
+    };
+  });
+
+  search.addEventListener("input", render);
+
+  document.addEventListener("click", event => {
+    if (!picker.contains(event.target) && !button.contains(event.target)) {
+      close();
+    }
+  });
+
+  picker.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      close();
+      button.focus();
+    }
+  });
+
+  function syncDisabled() {
+    button.disabled = input.disabled;
+    if (button.disabled) close();
+  }
+
+  new MutationObserver(syncDisabled).observe(input, {
+    attributes: true,
+    attributeFilter: ["disabled"]
+  });
+
+  for (const name of ["selectServer", "selectChannel", "disconnect"]) {
+    const original = window[name];
+    if (typeof original !== "function") continue;
+
+    window[name] = function(...args) {
+      close();
+      return original.apply(this, args);
+    };
+  }
+
+  syncDisabled();
+})();
+</script>
+</body>
+</html>
