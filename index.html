@@ -3157,7 +3157,14 @@ function renderDiscordText(container, content, mentions = []) {
 
       const image = document.createElement("img");
       image.alt = "";
-      image.src = `/images/consoles/${system.id.toLowerCase()}.png`;
+      const consoleIcons = {
+        snes: "/images/snes.jpg",
+        nes: "/images/nes.jpg",
+        segaMD: "/images/segagenesis.jpg"
+      };
+      
+      image.src = consoleIcons[system.id] ||
+        `/images/consoles/${system.id.toLowerCase()}.png`;
       image.onerror = () => {
         image.onerror = null;
         image.src = fallbackThumbnail(system.color);
