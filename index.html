@@ -1803,6 +1803,7 @@ function renderMessages(items) {
 
     renderDiscordEmbeds(text, m.embeds || [], m.mentions || []);
     body.append(head, text);
+    renderMessageReactions(body, m.reactions);
     row.append(body);
     list.append(row);
   }
@@ -3723,6 +3724,205 @@ function createAttachmentVideo(attachment) {
 
   syncDisabled();
 })();
+</script>
+<style>
+  .play-area {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    gap: 12px;
+  }
+
+  #gameBrowser {
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px;
+    border: 1px solid #443751;
+    border-radius: 14px;
+    background: #17131f;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #51425f #17131f;
+  }
+
+  #gameBrowser .game-toolbar {
+    margin: 0 0 10px;
+  }
+
+  #gameBrowser .arcade-categories,
+  #gameBrowser #retroConsoles {
+    margin-bottom: 10px;
+  }
+
+  #gameBrowser #gameList {
+    margin-bottom: 0;
+    padding-bottom: 4px;
+  }
+
+  .play-area > .game-window {
+    min-width: 0;
+    margin: 0;
+  }
+
+  @media (min-width: 1001px) and (min-height: 650px) {
+    .layout {
+      align-items: stretch;
+    }
+
+    .play-area {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #gameBrowser {
+      max-height: 42%;
+    }
+
+    .play-area > .game-window {
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
+    .play-area > .game-window .stage {
+      min-height: 0;
+    }
+  }
+
+  @media (min-width: 701px) and (max-width: 1000px) {
+    .play-area {
+      height: 600px;
+      overflow: hidden;
+    }
+
+    #gameBrowser {
+      max-height: 42%;
+    }
+
+    .play-area > .game-window {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
+    .play-area > .game-window .stage {
+      flex: 1;
+      min-height: 0;
+      aspect-ratio: auto;
+    }
+  }
+
+  @media (max-width: 700px) {
+    #gameBrowser {
+      flex: none;
+      max-height: 300px;
+      padding: 10px;
+    }
+  }
+</style>
+
+<script>
+(() => {
+  const area = document.querySelector(".play-area");
+  const toolbar = area?.querySelector(".game-toolbar");
+  const player = document.getElementById("gameWindow");
+
+  if (!area || !toolbar || !player ||
+      document.getElementById("gameBrowser")) return;
+
+  const browser = document.createElement("section");
+  browser.id = "gameBrowser";
+  browser.setAttribute("aria-label", "Browse games");
+
+  // Collect the existing controls before moving them.
+  const controls = [];
+  for (let node = toolbar; node && node !== player;
+       node = node.nextElementSibling) {
+    controls.push(node);
+  }
+
+  toolbar.before(browser);
+  browser.append(...controls);
+})();
+</script>
+<style>
+  .message-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+  }
+
+  .message-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 3px 8px;
+    border: 1px solid #484052;
+    border-radius: 8px;
+    background: #26222f;
+    color: #ded9e8;
+    font-size: 12px;
+    line-height: 20px;
+  }
+
+  .message-reaction img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+</style>
+
+<script>
+function renderMessageReactions(body, reactions) {
+  if (!Array.isArray(reactions)) return;
+
+  const bar = document.createElement("div");
+  bar.className = "message-reactions";
+  bar.setAttribute("aria-label", "Discord reactions");
+
+  for (const reaction of reactions) {
+    const count = Number(reaction.count);
+    const emoji = reaction.emoji || {};
+    const name = String(emoji.name || "emoji");
+
+    if (!Number.isSafeInteger(count) || count < 1) continue;
+
+    const badge = document.createElement("span");
+    badge.className = "message-reaction";
+    badge.title = `${name}: ${count} reactions`;
+    badge.setAttribute("aria-label", badge.title);
+
+    if (/^\d{15,22}$/.test(String(emoji.id || ""))) {
+      const image = document.createElement("img");
+      const extension = emoji.animated ? "gif" : "png";
+
+      image.src =
+        `https://cdn.discordapp.com/emojis/${emoji.id}.${extension}?size=48`;
+      image.alt = `:${name}:`;
+      image.loading = "lazy";
+      image.onerror = () => {
+        image.replaceWith(document.createTextNode(`:${name}:`));
+      };
+
+      badge.append(image);
+    } else {
+      badge.append(document.createTextNode(name));
+    }
+
+    const number = document.createElement("span");
+    number.textContent = String(count);
+    badge.append(number);
+    bar.append(badge);
+  }
+
+  if (bar.childElementCount) body.append(bar);
+}
 </script>
 </body>
 </html>
