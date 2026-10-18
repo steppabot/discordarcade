@@ -3313,18 +3313,55 @@ function renderDiscordText(container,content,mentions=[]){
 function attachmentExtension(attachment){return String(attachment.name||'').split('.').pop().toLowerCase();}
 function isImageAttachment(a){return /^image\/(png|jpeg|gif|webp)(;|$)/i.test(a.type||'') || ['png','jpg','jpeg','gif','webp'].includes(attachmentExtension(a));}
 function isVideoAttachment(a){return /^video\//i.test(a.type||'') || ['mp4','mov','m4v','webm','ogv','ogg','3gp','mkv','avi'].includes(attachmentExtension(a));}
-function createAttachmentVideo(attachment){
- const box=document.createElement('div');box.className='attachment-video';
- const video=document.createElement('video');video.className='message-media';video.controls=true;video.playsInline=true;video.preload='metadata';
- video.setAttribute('aria-label',attachment.name||'Video attachment');
- const sources=[attachment.url,attachment.proxy_url].map(safeEmbedURL).filter((v,i,a)=>v&&a.indexOf(v)===i);
- let index=0;const status=document.createElement('p');status.className='video-fallback';status.hidden=true;
- video.addEventListener('error',()=>{
-  if(++index<sources.length){video.src=sources[index];video.load();return;}
-  video.hidden=true;status.hidden=false;
-  status.textContent='This video could not play in your browser. Its format may be unsupported, or the link may have expired. Open the original below, or refresh the chat and try again.';
- });
- if(sources.length)video.src=sources[0];else{video.hidden=true;status.hidden=false;status.textContent='Video link unavailable. Refresh the chat and try again.';}
- box.append(video,status);return box;
+function createAttachmentVideo(attachment) {
+  const box = document.createElement("div");
+  box.className = "attachment-video";
+
+  const video = document.createElement("video");
+  video.className = "message-media";
+  video.controls = true;
+  video.playsInline = true;
+  video.preload = "metadata";
+
+  const sources = [attachment.url, attachment.proxy_url]
+    .map(safeEmbedURL)
+    .filter((url, index, list) => url && list.indexOf(url) === index);
+
+  let index = 0;
+
+  function showLink() {
+    video.remove();
+
+    const existing = box.nextElementSibling;
+    if (existing?.tagName === "A") {
+      existing.textContent = "User uploaded video";
+      return;
+    }
+
+    const url = safeEmbedURL(attachment.url);
+    if (!url) return;
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.textContent = "User uploaded video";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    box.append(link);
+  }
+
+  video.addEventListener("error", () => {
+    if (++index < sources.length) {
+      video.src = sources[index];
+      video.load();
+    } else {
+      showLink();
+    }
+  });
+
+  box.append(video);
+  if (sources.length) video.src = sources[0];
+  else queueMicrotask(showLink);
+
+  return box;
 }
 </script></body></html>
