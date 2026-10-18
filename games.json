@@ -1627,7 +1627,7 @@
     "type": "retro",
     "core": "segaMD",
     "url": "/games/genesis/panoramacotton.md",
-    "icon": "/images/panoramacotton.PNG",
+    "icon": "/images/panoramacotton.jpg",
     "subtitle": "SEGA GENESIS · SHOOTER"
   },
   {
@@ -1834,7 +1834,7 @@
     "type": "retro",
     "core": "segaMD",
     "url": "/games/genesis/sonickucklessonicthehedgehog3.md",
-    "icon": "/images/sonic3andknuckles.PNG",
+    "icon": "/images/sonic3andknuckles.jpg",
     "subtitle": "SEGA GENESIS · PLATFORMER"
   },
   {
