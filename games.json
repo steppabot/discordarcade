@@ -731,6 +731,15 @@
     "icon": "/images/topgear.jpg",
     "subtitle": "SNES · RACING"
   },
+    {
+    "id": "toystory",
+    "title": "Toy Story",
+    "type": "retro",
+    "core": "snes",
+    "url": "/games/snes/toystory.sfc",
+    "icon": "/images/toystory.jpg",
+    "subtitle": "SNES · ACTION RPG"
+  },
   {
     "id": "trialsofmana",
     "title": "Trials of Mana",
