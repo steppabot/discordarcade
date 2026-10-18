@@ -1161,5 +1161,959 @@
     "url": "/games/flash/turtle.swf",
     "icon": "/images/turtle.jpg",
     "subtitle": "FLASH · ARCADE"
+  },
+  {
+    "id": "genesis-aaahhrealmonsters",
+    "title": "Aaahh Real Monsters",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/aaahhrealmonsters.md",
+    "icon": "/images/aaahhrealmonsters.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-aladdin",
+    "title": "Aladdin",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/aladdin.md",
+    "icon": "/images/aladdin.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-aliensoldier",
+    "title": "Alien Soldier",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/aliensolider.md",
+    "icon": "/images/aliensoldier.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-alteredbeast",
+    "title": "Altered Beast",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/alteredbeast.md",
+    "icon": "/images/alteredbeast.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-beyondoasis",
+    "title": "Beyond Oasis",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/beyondoasis.md",
+    "icon": "/images/beyondoasis.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-boogermanapickandflickadventure",
+    "title": "Boogerman A Pick and Flick Adventure",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/boogermanapickandflickadventure.md",
+    "icon": "/images/boogermanapickandflickadventure.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-castlevaniabloodlines",
+    "title": "Castlevania Bloodlines",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/castlevaniabloodlines.md",
+    "icon": "/images/castlevaniabloodlines.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-comixzone",
+    "title": "Comix Zone",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/comixzone.md",
+    "icon": "/images/comixzone.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-contrahardcorps",
+    "title": "Contra Hard Corps",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/contrahardcorps.md",
+    "icon": "/images/contrahardcorps.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-coolspot",
+    "title": "Cool Spot",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/coolspot.md",
+    "icon": "/images/coolspot.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-desertstrikereturntothegulf",
+    "title": "Desert Strike Return to the Gulf",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/desertstrikereturntothegulf.md",
+    "icon": "/images/desertstrikereturntothegulf.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-drrobotniksmeanbeanmachine",
+    "title": "Dr Robotnik's Mean Bean Machine",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/drrobotniksmeanbeanmachine.md",
+    "icon": "/images/drrobotniksmeanbeanmachine.PNG",
+    "subtitle": "SEGA GENESIS · PUZZLE"
+  },
+  {
+    "id": "genesis-dynamiteheaddy",
+    "title": "Dynamite Headdy",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/dynamiteheaddy.md",
+    "icon": "/images/dynamiteheaddy.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-earthwormjim",
+    "title": "Earthworm Jim",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/earthwormjim.md",
+    "icon": "/images/earthwormjim.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-eccothedolphin",
+    "title": "Ecco the Dolphin",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/eccothedolphin.md",
+    "icon": "/images/eccothedolphin.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-eccothetidesoftime",
+    "title": "Ecco The Tides of Time",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/eccothetidesoftime.md",
+    "icon": "/images/eccothetidesoftime.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-elviento",
+    "title": "El Viento",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/elviento.md",
+    "icon": "/images/elviento.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-eternalchampions",
+    "title": "Eternal Champions",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/eternalchampions.md",
+    "icon": "/images/eternalchampions.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-flashbackthequestforidentity",
+    "title": "Flashback The Quest for Identity",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/flashbackthequestforidentity.md",
+    "icon": "/images/flashbackthequestforidentity.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-forgottenworlds",
+    "title": "Forgotten Worlds",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/forgottenworlds.md",
+    "icon": "/images/forgottenworlds.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-gaiares",
+    "title": "Gaiares",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/gaiares.md",
+    "icon": "/images/gaiares.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-generalchaos",
+    "title": "General Chaos",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/generalchaos.md",
+    "icon": "/images/generalchaos.PNG",
+    "subtitle": "SEGA GENESIS · STRATEGY"
+  },
+  {
+    "id": "genesis-ghostbusters",
+    "title": "Ghostbusters",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/ghostbusters.md",
+    "icon": "/images/ghostbusters.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-ghoulsnghosts",
+    "title": "Ghouls 'n Ghosts",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/ghoulsnghosts.md",
+    "icon": "/images/ghoulsnghosts.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-goldenaxe",
+    "title": "Golden Axe",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/goldenaxe.md",
+    "icon": "/images/goldenaxe.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-goldenaxeii",
+    "title": "Golden Axe II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/goldenaxeii.md",
+    "icon": "/images/goldenaxeii.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-gunstarheroes",
+    "title": "Gunstar Heroes",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/gunstarheroes.md",
+    "icon": "/images/gunstarheroes.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-herzogzwei",
+    "title": "Herzog Zwei",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/herzogzwei.md",
+    "icon": "/images/herzogzwei.PNG",
+    "subtitle": "SEGA GENESIS · STRATEGY"
+  },
+  {
+    "id": "genesis-johnmaddenfootball",
+    "title": "John Madden Football",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/johnmaddenfootball.md",
+    "icon": "/images/johnmaddenfootball.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-junglestrike",
+    "title": "Jungle Strike",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/junglestrike.md",
+    "icon": "/images/junglestrike.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-jurassicpark",
+    "title": "Jurassic Park",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/jurassicpark.md",
+    "icon": "/images/jurassicpark.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-kidchameleon",
+    "title": "Kid Chameleon",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/kidchameleon.md",
+    "icon": "/images/kidchameleon.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-kingsbountytheconquerorsquest",
+    "title": "King's Bounty The Conqueror's Quest",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/kingsbountytheconquerorsquest.md",
+    "icon": "/images/kingsbountytheconquerorsquest.PNG",
+    "subtitle": "SEGA GENESIS · STRATEGY"
+  },
+  {
+    "id": "genesis-landstalker",
+    "title": "Landstalker",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/landstalker.md",
+    "icon": "/images/landstalker.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-lighteningforcequestforthedarkstar",
+    "title": "Lightening Force Quest for the Darkstar",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/lighteningforcequestforthedarkstar.md",
+    "icon": "/images/lighteningforcequestforthedarkstar.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-megabomberman",
+    "title": "Mega Bomberman",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/megabomberman.md",
+    "icon": "/images/megabomberman.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-megamanthewilywars",
+    "title": "Mega Man The Wily Wars",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/megamanthewilywars.md",
+    "icon": "/images/megamanthewilywars.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-michaeljacksonsmoonwalker",
+    "title": "Michael Jackson's Moonwalker",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/michaeljacksonsmoonwalker.md",
+    "icon": "/images/michaeljacksonsmoonwalker.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-micromachines",
+    "title": "Micro Machines",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/micromachines.md",
+    "icon": "/images/micromachines.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-mightymorphinpowerrangers",
+    "title": "Mighty Morphin Power Rangers",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/mightymorphinpowerrangers.md",
+    "icon": "/images/mightymorphinpowerrangers.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-monsterworldiv",
+    "title": "Monster World IV",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/monsterworldiv.md",
+    "icon": "/images/monsterworldiv.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-mortalkombat",
+    "title": "Mortal Kombat",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/mortalkombat.md",
+    "icon": "/images/mortalkombat.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-mortalkombatii",
+    "title": "Mortal Kombat II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/mortalkombatii.md",
+    "icon": "/images/mortalkombatii.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-mushametallicuniframesuperhybridarmor",
+    "title": "MUSHA Metallic Uniframe Super Hybrid Armor",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/mushametallicuniframesuperhybridarmor.md",
+    "icon": "/images/mushametallicuniframesuperhybridarmor.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-mutantleaguefootball",
+    "title": "Mutant League Football",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/mutantleaguefootball.md",
+    "icon": "/images/mutantleaguefootball.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-nbahangtime",
+    "title": "NBA Hang Time",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/nbahangtime.md",
+    "icon": "/images/nbahangtime.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-nbajamtournamentedition",
+    "title": "NBA Jam Tournament Edition",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/nbajamtournamentedition.md",
+    "icon": "/images/nbajamtournamentedition.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-nbalive98",
+    "title": "NBA Live 98",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/nbalive98.md",
+    "icon": "/images/nbalive98.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-nhl96",
+    "title": "NHL 96",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/nhl96.md",
+    "icon": "/images/nhl96.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-nhlhockey",
+    "title": "NHL Hockey",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/nhlhockey.md",
+    "icon": "/images/nhlhockey.PNG",
+    "subtitle": "SEGA GENESIS · SPORTS"
+  },
+  {
+    "id": "genesis-outrun",
+    "title": "OutRun",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/outrun.md",
+    "icon": "/images/outrun.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-panoramacotton",
+    "title": "Panorama Cotton",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/panoramacotton.md",
+    "icon": "/images/panoramacotton.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-paperboy",
+    "title": "Paperboy",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/paperboy.md",
+    "icon": "/images/paperboy.PNG",
+    "subtitle": "SEGA GENESIS · ARCADE"
+  },
+  {
+    "id": "genesis-paperboy2",
+    "title": "Paperboy 2",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/paperboy2.md",
+    "icon": "/images/paperboy2.PNG",
+    "subtitle": "SEGA GENESIS · ARCADE"
+  },
+  {
+    "id": "genesis-phantasystarii",
+    "title": "Phantasy Star II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/phantasystarii.md",
+    "icon": "/images/phantasystarii.PNG",
+    "subtitle": "SEGA GENESIS · RPG"
+  },
+  {
+    "id": "genesis-phantasystariiigenerationsofdoom",
+    "title": "Phantasy Star III Generations of Doom",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/phantasystariiigenerationsofdoom.md",
+    "icon": "/images/phantasystariiigenerationsofdoom.PNG",
+    "subtitle": "SEGA GENESIS · RPG"
+  },
+  {
+    "id": "genesis-phantasystariv",
+    "title": "Phantasy Star IV",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/phantasystariv.md",
+    "icon": "/images/phantasystariv.PNG",
+    "subtitle": "SEGA GENESIS · RPG"
+  },
+  {
+    "id": "genesis-piratesgold",
+    "title": "Pirates Gold",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/piratesgold.md",
+    "icon": "/images/piratesgold.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-quackshotstarringdonaldduck",
+    "title": "QuackShot Starring Donald Duck",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/quackshotstarringdonaldduck.md",
+    "icon": "/images/quackshotstarringdonaldduck.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-rangerx",
+    "title": "Ranger X",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/rangerx.md",
+    "icon": "/images/rangerx.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-ristar",
+    "title": "Ristar",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/ristar.md",
+    "icon": "/images/ristar.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-roadrash",
+    "title": "Road Rash",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/roadrash.md",
+    "icon": "/images/roadrash.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-roadrash3",
+    "title": "Road Rash 3",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/roadrash3.md",
+    "icon": "/images/roadrash3.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-roadrashii",
+    "title": "Road Rash II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/roadrashii.md",
+    "icon": "/images/roadrashii.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-rocketknightadventures",
+    "title": "Rocket Knight Adventures",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/rocketknightadventures.md",
+    "icon": "/images/rocketknightadventures.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-rocknrollracing",
+    "title": "Rock n Roll Racing",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/rocknrollracing.md",
+    "icon": "/images/rocknrollracing.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-shadowdancerthesecretofshinobi",
+    "title": "Shadow Dancer The Secret of Shinobi",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shadowdancerthesecretofshinobi.md",
+    "icon": "/images/shadowdancerthesecretofshinobi.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-shadowrun",
+    "title": "Shadowrun",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shadowrun.md",
+    "icon": "/images/shadowrun.PNG",
+    "subtitle": "SEGA GENESIS · RPG"
+  },
+  {
+    "id": "genesis-shiningforce",
+    "title": "Shining Force",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shiningforce.md",
+    "icon": "/images/shiningforce.PNG",
+    "subtitle": "SEGA GENESIS · TACTICAL RPG"
+  },
+  {
+    "id": "genesis-shiningforceii",
+    "title": "Shining Force II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shiningforceii.md",
+    "icon": "/images/shiningforceii.PNG",
+    "subtitle": "SEGA GENESIS · TACTICAL RPG"
+  },
+  {
+    "id": "genesis-shininginthedarkness",
+    "title": "Shining in the Darkness",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shininginthedarkness.md",
+    "icon": "/images/shininginthedarkness.PNG",
+    "subtitle": "SEGA GENESIS · RPG"
+  },
+  {
+    "id": "genesis-shinobiiireturnoftheninjamaster",
+    "title": "Shinobi III Return of the Ninja Master",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/shinobiiireturnoftheninjamaster.md",
+    "icon": "/images/shinobiiireturnoftheninjamaster.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-sonic3dblast",
+    "title": "Sonic 3D Blast",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonic3dblast.md",
+    "icon": "/images/sonic3dblast.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-sonicknuckles",
+    "title": "Sonic & Knuckles",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonicknuckles.md",
+    "icon": "/images/sonicknuckles.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-sonic3andknuckles",
+    "title": "Sonic 3 & Knuckles",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonickucklessonicthehedgehog3.md",
+    "icon": "/images/sonic3andknuckles.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-sonicspinball",
+    "title": "Sonic Spinball",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonicspinball.md",
+    "icon": "/images/sonicspinball.PNG",
+    "subtitle": "SEGA GENESIS · PINBALL"
+  },
+  {
+    "id": "genesis-sonicthehedgehog",
+    "title": "Sonic the Hedgehog",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonicthehedgehog.md",
+    "icon": "/images/sonicthehedgehog.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-sonicthehedgehog2",
+    "title": "Sonic the Hedgehog 2",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonicthehedgehog2.md",
+    "icon": "/images/sonicthehedgehog2.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-sonicthehedgehog3",
+    "title": "Sonic the Hedgehog 3",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sonicthehedgehog3.md",
+    "icon": "/images/sonicthehedgehog3.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-spiderman",
+    "title": "Spider-Man",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/spiderman.md",
+    "icon": "/images/spiderman.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-splatterhouse3",
+    "title": "Splatterhouse 3",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/splatterhouse3.md",
+    "icon": "/images/splatterhouse3.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-starflight",
+    "title": "Starflight",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/starflight.md",
+    "icon": "/images/starflight.PNG",
+    "subtitle": "SEGA GENESIS · EXPLORATION"
+  },
+  {
+    "id": "genesis-streetfighteriispecialchampionedition",
+    "title": "Street Fighter II Special Champion Edition",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/streetfighteriispecialchampionedition.md",
+    "icon": "/images/streetfighteriispecialchampionedition.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-streetsofrage",
+    "title": "Streets of Rage",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/streetsofrage.md",
+    "icon": "/images/streetsofrage.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-streetsofrage2",
+    "title": "Streets of Rage 2",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/streetsofrage2.md",
+    "icon": "/images/streetsofrage2.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-streetsofrage3",
+    "title": "Streets of Rage 3",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/streetsofrage3.md",
+    "icon": "/images/streetsofrage3.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-strider",
+    "title": "Strider",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/strider.md",
+    "icon": "/images/strider.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-sunsetriders",
+    "title": "Sunset Riders",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/sunsetriders.md",
+    "icon": "/images/sunsetriders.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-superstreetfighterii",
+    "title": "Super Street Fighter II",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/superstreetfighterii.md",
+    "icon": "/images/superstreetfighterii.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-teenagemutantninjaturtlesthehyperstoneheist",
+    "title": "Teenage Mutant Ninja Turtles The Hyperstone Heist",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/teenagemutantninjaturtlesthehyperstoneheist.md",
+    "icon": "/images/teenagemutantninjaturtlesthehyperstoneheist.PNG",
+    "subtitle": "SEGA GENESIS · BEAT EM UP"
+  },
+  {
+    "id": "genesis-theaddamsfamily",
+    "title": "The Addams Family",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/theaddamsfamily.md",
+    "icon": "/images/theaddamsfamily.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-theadventuresofbatmanrobin",
+    "title": "The Adventures of Batman & Robin",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/theadventuresofbatmanrobin.md",
+    "icon": "/images/theadventuresofbatmanrobin.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-thejunglebook",
+    "title": "The Jungle Book",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/thejunglebook.md",
+    "icon": "/images/thejunglebook.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-thelionking",
+    "title": "The Lion King",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/thelionking.md",
+    "icon": "/images/thelionking.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-therevengeofshinobi",
+    "title": "The Revenge of Shinobi",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/therevengeofshinobi.md",
+    "icon": "/images/therevengeofshinobi.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "genesis-thunderforceiii",
+    "title": "Thunder Force III",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/thunderforceiii.md",
+    "icon": "/images/thunderforceiii.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-toejamearl",
+    "title": "ToeJam & Earl",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/toejamearl.md",
+    "icon": "/images/toejamearl.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-truxton",
+    "title": "Truxton",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/truxton.md",
+    "icon": "/images/truxton.PNG",
+    "subtitle": "SEGA GENESIS · SHOOTER"
+  },
+  {
+    "id": "genesis-ultimatemortalkombat3",
+    "title": "Ultimate Mortal Kombat 3",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/ultimatemortalkombat3.md",
+    "icon": "/images/ultimatemortalkombat3.PNG",
+    "subtitle": "SEGA GENESIS · FIGHTING"
+  },
+  {
+    "id": "genesis-vectorman",
+    "title": "Vectorman",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/vectorman.md",
+    "icon": "/images/vectorman.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-vectorman2",
+    "title": "Vectorman 2",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/vectorman2.md",
+    "icon": "/images/vectorman2.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-virtuaracing",
+    "title": "Virtua Racing",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/virtuaracing.md",
+    "icon": "/images/virtuaracing.PNG",
+    "subtitle": "SEGA GENESIS · RACING"
+  },
+  {
+    "id": "genesis-warsong",
+    "title": "Warsong",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/warsong.md",
+    "icon": "/images/warsong.PNG",
+    "subtitle": "SEGA GENESIS · TACTICAL RPG"
+  },
+  {
+    "id": "genesis-wonderboyinmonsterworld",
+    "title": "Wonder Boy in Monster World",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/wonderboyinthemonsterworld.md",
+    "icon": "/images/wonderboyinmonsterworld.PNG",
+    "subtitle": "SEGA GENESIS · ADVENTURE"
+  },
+  {
+    "id": "genesis-worldofillusion",
+    "title": "World of Illusion Starring Mickey Mouse and Donald Duck",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/worldofillusionstarringmickeymouseandonaldduck.md",
+    "icon": "/images/worldofillusion.PNG",
+    "subtitle": "SEGA GENESIS · PLATFORMER"
+  },
+  {
+    "id": "genesis-zombiesatemyneighbors",
+    "title": "Zombies Ate My Neighbors",
+    "type": "retro",
+    "core": "segaMD",
+    "url": "/games/genesis/zombiesatemyneighbors.md",
+    "icon": "/images/zombiesatemyneighbors.PNG",
+    "subtitle": "SEGA GENESIS · ACTION"
   }
 ]
