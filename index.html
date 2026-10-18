@@ -1770,7 +1770,7 @@ function renderMessages(items) {
     renderDiscordText(
       text,
       m.content || (
-        (m.attachments || []).length
+        ((m.attachments || []).length || (m.embeds || []).length)
           ? ""
           : "(Embed or content unavailable)"
       ),
@@ -1803,6 +1803,7 @@ function renderMessages(items) {
       text.append(link);
     }
 
+    renderDiscordEmbeds(text, m.embeds || [], m.mentions || []);
     body.append(head, text);
     row.append(body);
     list.append(row);
@@ -2659,7 +2660,7 @@ function renderDiscordText(container, content, mentions = []) {
   );
 
   const pattern =
-    /<(a?):([A-Za-z0-9_]+):(\d{15,22})>|<@!?(\d{15,22})>/g;
+    /<(a?):([A-Za-z0-9_]+):(\d{15,22})>|<@[!&]?(\d{15,22})>/g;
 
   const matches = [...text.matchAll(pattern)];
 
@@ -3237,4 +3238,41 @@ body.chat-collapsed .community{display:none}
 @media(min-width:701px) and (max-width:1000px){.layout{grid-template-columns:minmax(350px,45%) minmax(0,1fr)}.community.has-server{grid-template-columns:46px 104px minmax(0,1fr)}.server-icon{width:34px;height:34px}.community{height:600px}}
 @media(max-width:700px){.community{order:1;height:500px;margin-top:10px}.community.has-server{grid-template-columns:46px 105px minmax(0,1fr)}.community .chat{margin-top:0;order:initial}.server-icon{width:34px;height:34px}.community .chat-title h2{font-size:12px}.community .composer{padding:5px;gap:4px}.community .chat-bottom{padding:8px}.community .message{padding-left:8px;padding-right:8px}}
 </style>
-</body></html>
+<style>
+.message-main{min-width:0}.discord-embed{display:flow-root;white-space:normal;margin:8px 0;max-width:100%;width:420px;padding:12px;background:#292b30;border:1px solid #3e4047;border-left:4px solid #59616b;border-radius:5px;overflow-wrap:anywhere;font-size:12px;line-height:1.5}.discord-embed a{color:#72baff;text-decoration:none}.discord-embed a:hover{text-decoration:underline}.embed-title{display:block;font-weight:750;font-size:14px;margin:4px 0 8px}.embed-description,.embed-field{white-space:pre-wrap}.embed-author{display:flex;gap:7px;align-items:center;font-weight:700;margin-bottom:8px}.embed-thumbnail{float:right;width:64px;max-width:30%;height:auto;max-height:80px;object-fit:contain;margin:0 0 10px 12px;border-radius:4px}.embed-image{display:block;width:auto;max-width:100%;height:auto;max-height:420px;object-fit:contain;border-radius:4px;margin-top:8px}.embed-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}.embed-field{grid-column:1/-1;min-width:0}.embed-field.inline{grid-column:auto}.embed-footer{display:flex;gap:6px;align-items:center;font-size:10px;color:#b2b5bd;margin-top:10px;clear:both}.embed-icon{width:20px!important;height:20px!important;object-fit:cover;border-radius:50%;flex-shrink:0}.embed-video-link{display:block;margin-top:10px}.embed-image-error{display:block;color:#b2b5bd;font-size:11px}.discord-embed .discord-custom-emoji{width:20px!important;height:20px!important;vertical-align:middle}.discord-embed .emoji-only{display:inline}
+</style><script>
+function safeEmbedURL(value) {
+  try {const u=new URL(value);return u.protocol==='https:' && !u.username && !u.password ? u.href : null;} catch{return null;}
+}
+function renderEmbedText(node, content, mentions) {
+  // Build DOM nodes, never insert Discord-provided text as HTML.
+  const value=String(content||'');const pattern=/\*\*([^*]+)\*\*|\[([^\]\n]+)\]\((https:\/\/[^\s)]+)\)/g;
+  let position=0;
+  function appendText(value, target=node){const span=document.createElement('span');renderDiscordText(span,value,mentions);target.append(span);}
+  for(const match of value.matchAll(pattern)){
+    appendText(value.slice(position,match.index));
+    if(match[1]){const strong=document.createElement('strong');appendText(match[1],strong);node.append(strong);}
+    else {const url=safeEmbedURL(match[3]);if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';appendText(match[2],a);node.append(a);}else appendText(match[0]);}
+    position=match.index+match[0].length;
+  }
+  appendText(value.slice(position));
+}
+function renderDiscordEmbeds(container, embeds, mentions=[]) {
+  function linkOrText(label,url,className){const safe=safeEmbedURL(url);const el=document.createElement(safe?'a':'div');el.className=className;if(safe){el.href=safe;el.target='_blank';el.rel='noopener noreferrer';}renderEmbedText(el,label,mentions);return el;}
+  function image(url,className,alt){const safe=safeEmbedURL(url);if(!safe)return null;const img=document.createElement('img');img.src=safe;img.className=className;img.alt=alt;img.loading='lazy';img.referrerPolicy='no-referrer';img.onerror=()=>{const note=document.createElement('span');note.className='embed-image-error';note.textContent=alt+' unavailable';img.replaceWith(note);};return img;}
+  for(const embed of embeds.slice(0,10)){
+    const card=document.createElement('section');card.className='discord-embed';card.setAttribute('aria-label','Discord embed');
+    if(Number.isInteger(embed.color)&&embed.color>=0&&embed.color<=0xffffff)card.style.borderLeftColor='#'+embed.color.toString(16).padStart(6,'0');
+    if(embed.author?.name){const author=linkOrText(embed.author.name,embed.author.url,'embed-author');const icon=image(embed.author.icon,'embed-icon','Author icon');if(icon)author.prepend(icon);card.append(author);}
+    const thumb=image(embed.thumbnail,'embed-thumbnail','Embed thumbnail');if(thumb)card.append(thumb);
+    if(embed.title)card.append(linkOrText(embed.title,embed.url,'embed-title'));
+    if(embed.description){const description=document.createElement('div');description.className='embed-description';renderEmbedText(description,embed.description,mentions);card.append(description);}
+    if(embed.fields?.length){const fields=document.createElement('div');fields.className='embed-fields';for(const field of embed.fields){const item=document.createElement('div');item.className='embed-field'+(field.inline?' inline':'');const name=document.createElement('strong');renderEmbedText(name,field.name,mentions);const value=document.createElement('div');renderEmbedText(value,field.value,mentions);item.append(name,value);fields.append(item);}card.append(fields);}
+    const full=image(embed.image,'embed-image','Embed image');if(full){const a=document.createElement('a');a.href=safeEmbedURL(embed.image);a.target='_blank';a.rel='noopener noreferrer';a.append(full);card.append(a);}
+    if(embed.video_url)card.append(linkOrText('Watch video ↗',embed.video_url,'embed-video-link'));
+    const stamp=embed.timestamp?new Date(embed.timestamp):null;
+    if(embed.footer?.text || (stamp&&!Number.isNaN(stamp.getTime()))){const footer=document.createElement('div');footer.className='embed-footer';const icon=image(embed.footer?.icon,'embed-icon','Footer icon');if(icon)footer.append(icon);const label=document.createElement('span');label.textContent=[embed.footer?.text,stamp&&!Number.isNaN(stamp.getTime())?stamp.toLocaleString():null].filter(Boolean).join(' · ');footer.append(label);card.append(footer);}
+    if(card.childNodes.length)container.append(card);
+  }
+}
+</script></body></html>
