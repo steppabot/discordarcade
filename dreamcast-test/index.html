@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Token · Dreamcast test</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#2ed7e9}main{max-width:900px;margin:24px auto;padding:0 16px}form{display:flex;gap:8px;flex-wrap:wrap}input{flex:1;min-width:200px;background:#242036;color:white;border:1px solid #635277;padding:12px;border-radius:8px}button{background:#2ed7e9;color:#15102e;border:0;border-radius:8px;padding:12px;font-weight:700;cursor:pointer}button:disabled{opacity:.5}#status{white-space:pre-wrap;overflow-wrap:anywhere;color:#c7c0d6}#game{width:100%;height:min(70vh,650px);min-height:300px;background:#090713;border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}small{color:#bcb3ce}
+</style>
+</head>
+<body><header><strong>TOKEN · Dreamcast test</strong><a href="/">Back to arcade</a></header>
+<main><form id="launch"><input id="rom" type="url" required placeholder="Paste the direct HTTPS URL to crazytaxi.zip" aria-label="Game file URL"><button id="start" disabled>Start Crazy Taxi</button></form>
+<p id="status" role="status">Preparing browser…</p><div id="game"></div>
+<p><small>Experimental player. Sign in on the arcade first. Use the emulator controls to configure a keyboard or controller. Save compatibility is not yet verified.</small></p>
+<p><small><a href="https://github.com/nasomers/flycast-wasm/tree/v1.0">Flycast WASM source · GPLv2</a> · <a href="https://github.com/EmulatorJS/EmulatorJS/tree/v4.2.3">EmulatorJS source · GPLv3</a></small></p></main>
+<script>
+const statusText=document.getElementById('status'),startButton=document.getElementById('start'),romInput=document.getElementById('rom');
+const base=new URL('./',location.href).href;
+function show(text){statusText.textContent=text;}
+function script(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.head.append(s);});}
+async function prepare(){
+ if(window.top!==window.self)throw new Error('Open this test page in its own tab.');
+ if(!window.isSecureContext||!navigator.serviceWorker)throw new Error('Open this page on HTTPS in a browser with service workers enabled.');
+ await navigator.serviceWorker.register('./isolation-sw.js',{scope:'./'});
+ await navigator.serviceWorker.ready;
+ if(!window.crossOriginIsolated){
+  if(sessionStorage.getItem('token-dc-isolation-reload'))throw new Error('Browser isolation did not activate. Close this tab and reopen it, or try a normal Chrome/Firefox window.');
+  await Promise.race([new Promise(resolve=>{if(navigator.serviceWorker.controller)return resolve();navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true});}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Service worker activation timed out. Reload this page.')),10000))]);
+  sessionStorage.setItem('token-dc-isolation-reload','1');location.reload();return;
+ }
+ sessionStorage.removeItem('token-dc-isolation-reload');
+ const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2');
+ if(!gl)throw new Error('This browser/device does not provide WebGL 2.');
+ gl.getExtension('WEBGL_lose_context')?.loseContext();
+ romInput.value=new URLSearchParams(location.search).get('url')||'';
+ show('Ready. Paste the direct URL to Crazy Taxi’s ZIP, containing its CUE and all three BIN tracks.');startButton.disabled=false;
+}
+document.getElementById('launch').onsubmit=async event=>{
+ event.preventDefault();startButton.disabled=true;
+ try{
+  const url=new URL(romInput.value.trim());if(url.protocol!=='https:')throw new Error('Use an HTTPS game URL.');
+  show('Checking premium access…');
+  const access=await fetch('https://api.discordarcade.com/api/arcade/access',{credentials:'include',cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!access.ok)throw new Error('Access check failed ('+access.status+').');
+  if((await access.json()).allowed!==true)throw new Error('Sign in on the main arcade with premium access, then return here.');
+  // Check CORS and file availability before loading a large game.
+  show('Checking game URL…');
+  const check=await fetch(url.href,{method:'HEAD',signal:AbortSignal.timeout(15000)});
+  if(!check.ok)throw new Error('Game URL returned HTTP '+check.status+'.');
+  if((check.headers.get('content-type')||'').includes('text/html'))throw new Error('That URL returns a webpage. Use the direct ZIP file URL.');
+  window.EJS_player='#game';window.EJS_core='flycast';window.EJS_gameUrl=url.href;
+  window.EJS_gameName='Crazy Taxi (Dreamcast)';window.EJS_gameID=900001;
+  window.EJS_pathtodata=base+'data/';window.EJS_color='#2ed7e9';window.EJS_backgroundColor='#15102e';
+  window.EJS_startOnLoaded=false;window.EJS_threads=false;window.EJS_disableCue=true;
+  window.EJS_defaultOptions={'webgl2Enabled':'enabled','ejs_threads':'disabled','save-state-location':'browser','save-state-slot':1};
+  window.EJS_externalFiles={
+   '/system/dc/dc_boot.bin':location.origin+'/emulators/dreamcast/bios/dc_boot.bin',
+   '/system/dc/dc_flash.bin':location.origin+'/emulators/dreamcast/bios/dc_flash.bin'
+  };
+  window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
+  window.EJS_ready=()=>show('Click Start Game inside the player. The first load downloads and extracts the game.');
+  window.EJS_onGameStart=()=>show('Game started. Use the player menu to configure controls.');
+  show('Loading Dreamcast player…');await script(base+'data/loader.js');
+  document.getElementById('launch').hidden=true;
+ }catch(error){console.error(error);show(error.message+'\nIf the file is on R2, check public access and CORS settings.');startButton.disabled=false;}
+};
+window.addEventListener('error',event=>{if(event.message)show('Player error: '+event.message);});
+window.addEventListener('unhandledrejection',event=>show('Player error: '+(event.reason?.message||String(event.reason))));
+prepare().catch(error=>show(error.message));
+</script></body></html>
