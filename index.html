@@ -4350,19 +4350,43 @@ function renderMessageReactions(body, reactions) {
     } catch {}
   }
 
-  function explosion() {
-    if (
-      !enabled ||
-      !context ||
-      context.state !== "running" ||
-      document.hidden ||
-      activeGame !== "helicopter"
-    ) return;
+function explosion() {
+  if (
+    !enabled ||
+    !context ||
+    context.state !== "running" ||
+    document.hidden ||
+    activeGame !== "helicopter"
+  ) return;
 
-    const now = context.currentTime;
-    const duration = 1.35;
+  const now = context.currentTime;
 
-    // Crunchy initial blast and fading debris.
+  if (rotorVolume) {
+    rotorVolume.gain.setTargetAtTime(0, now, 0.01);
+  }
+
+  const mix = context.createGain();
+  mix.gain.value = 0.75;
+
+  const compressor = context.createDynamicsCompressor();
+  compressor.threshold.value = -14;
+  compressor.knee.value = 12;
+  compressor.ratio.value = 5;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.2;
+
+  mix.connect(compressor);
+  compressor.connect(master);
+
+  function noiseLayer({
+    delay = 0,
+    duration,
+    volume,
+    from,
+    to,
+    type = "lowpass"
+  }) {
+    const start = now + delay;
     const buffer = context.createBuffer(
       1,
       Math.ceil(context.sampleRate * duration),
@@ -4370,66 +4394,157 @@ function renderMessageReactions(body, reactions) {
     );
 
     const samples = buffer.getChannelData(0);
-    let rumble = 0;
 
     for (let i = 0; i < samples.length; i++) {
-      const t = i / context.sampleRate;
-      const noise = Math.random() * 2 - 1;
-
-      rumble = rumble * 0.93 + noise * 0.07;
-
-      samples[i] =
-        noise * Math.exp(-t * 10) * 0.5 +
-        rumble * Math.exp(-t * 3) * 1.5;
+      samples[i] = Math.random() * 2 - 1;
     }
 
-    const blast = context.createBufferSource();
-    blast.buffer = buffer;
+    const source = context.createBufferSource();
+    source.buffer = buffer;
 
     const filter = context.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(5500, now);
-    filter.frequency.exponentialRampToValueAtTime(180, now + duration);
+    filter.type = type;
+    filter.Q.value = 0.7;
+    filter.frequency.setValueAtTime(from, start);
+    filter.frequency.exponentialRampToValueAtTime(
+      to,
+      start + duration
+    );
 
-    const volume = context.createGain();
-    volume.gain.setValueAtTime(0.0001, now);
-    volume.gain.exponentialRampToValueAtTime(0.8, now + 0.008);
-    volume.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(
+      volume,
+      start + 0.004
+    );
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      start + duration
+    );
 
-    blast.connect(filter);
-    filter.connect(volume);
-    volume.connect(master);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(mix);
 
-    blast.onended = () => {
-      blast.disconnect();
+    source.onended = () => {
+      source.disconnect();
       filter.disconnect();
-      volume.disconnect();
+      gain.disconnect();
     };
 
-    blast.start(now);
+    source.start(start);
+  }
 
-    // Low impact underneath the blast.
-    const boom = context.createOscillator();
-    const boomVolume = context.createGain();
-
-    boom.type = "sine";
-    boom.frequency.setValueAtTime(110, now);
-    boom.frequency.exponentialRampToValueAtTime(28, now + 0.65);
-
-    boomVolume.gain.setValueAtTime(0.0001, now);
-    boomVolume.gain.exponentialRampToValueAtTime(0.55, now + 0.012);
-    boomVolume.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
-
-    boom.connect(boomVolume);
-    boomVolume.connect(master);
-
-    boom.onended = () => {
-      boom.disconnect();
-      boomVolume.disconnect();
+  function impactTone({
+    delay = 0,
+    duration,
+    from,
+    to,
+    volume,
+    type = "sine"
+  }) {
+    const start = now + delay;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+  
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(from, start);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      to,
+      start + duration
+    );
+  
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(
+      volume,
+      start + 0.006
+    );
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      start + duration
+    );
+  
+    oscillator.connect(gain);
+    gain.connect(mix);
+  
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gain.disconnect();
     };
-
-    boom.start(now);
-    boom.stop(now + 0.85);
+  
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  }
+  
+  // Sharp initial rupture.
+  noiseLayer({
+    duration: 0.16,
+    volume: 0.65,
+    from: 7500,
+    to: 1600
+  });
+  
+  // Main blast: broad, heavy, and quickly darkening.
+  noiseLayer({
+    delay: 0.015,
+    duration: 1.15,
+    volume: 0.85,
+    from: 2400,
+    to: 120
+  });
+  
+  // Low rolling aftermath.
+  noiseLayer({
+    delay: 0.08,
+    duration: 1.9,
+    volume: 0.65,
+    from: 330,
+    to: 55
+  });
+  
+  // Bass impact, with a higher layer audible on small speakers.
+  impactTone({
+    duration: 0.9,
+    from: 95,
+    to: 28,
+    volume: 0.8
+  });
+  
+  impactTone({
+    duration: 0.45,
+    from: 180,
+    to: 55,
+    volume: 0.18,
+    type: "triangle"
+  });
+  
+  // Scattered debris: brief clatters and metallic ringing.
+  for (let i = 0; i < 7; i++) {
+    const delay = 0.12 + i * 0.12 + Math.random() * 0.06;
+    const frequency = 600 + Math.random() * 2000;
+  
+    noiseLayer({
+      delay,
+      duration: 0.08 + Math.random() * 0.1,
+      volume: 0.08 * (1 - i / 9),
+      from: frequency,
+      to: frequency * 0.7,
+      type: "bandpass"
+    });
+  
+    impactTone({
+      delay,
+      duration: 0.15 + Math.random() * 0.15,
+      from: frequency,
+      to: frequency * 0.92,
+      volume: 0.025 * (1 - i / 9)
+    });
+  }
+  
+  setTimeout(() => {
+    mix.disconnect();
+    compressor.disconnect();
+  }, 2600);
   }
 
   // The existing crash calls beep(55, .3).
@@ -4448,29 +4563,30 @@ function renderMessageReactions(body, reactions) {
 
   function syncAudio() {
     if (!context) return;
-
+  
     const flying =
       enabled &&
       !document.hidden &&
       activeGame === "helicopter" &&
       game.state === "playing";
-
+  
     master.gain.setTargetAtTime(
       enabled && !document.hidden ? 0.65 : 0,
       context.currentTime,
-      0.025
+      0.04
     );
-
+  
+    // Soft while floating; a modest increase while climbing.
     rotorVolume.gain.setTargetAtTime(
-      flying ? (game.held ? 0.85 : 0.65) : 0,
+      flying ? (game.held ? 0.42 : 0.27) : 0,
       context.currentTime,
-      0.045
+      0.15
     );
-
+  
     rotor.playbackRate.setTargetAtTime(
-      game.held ? 1.16 : 1,
+      game.held ? 1.07 : 0.94,
       context.currentTime,
-      0.12
+      0.2
     );
   }
 
@@ -4487,6 +4603,7 @@ function renderMessageReactions(body, reactions) {
     updateButton();
     unlockAudio();
     syncAudio();
+    notice(enabled ? "Sound on" : "Sound off");
   };
 
   // Unlock audio during a real interaction, before ranked-run requests.
