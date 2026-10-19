@@ -555,6 +555,12 @@ dialog .btn { margin-top: 12px; }
   * { scroll-behavior: auto !important; }
 }
 </style>
+<style>
+  #notice {
+    border: 1px solid #2ed7e9;
+    box-shadow: 0 0 12px #2ed7e926;
+  }
+</style>
 </head>
 <body>
 
@@ -1222,10 +1228,19 @@ let polling = false;
 let notifyTimer = null;
 
 function notice(text) {
-  $('notice').textContent = text;
-  $('notice').hidden = false;
+  const popup = $('notice');
+  popup.textContent = text;
+  popup.hidden = false;
+
   clearTimeout(notifyTimer);
-  notifyTimer = setTimeout(() => $('notice').hidden = true, 5500);
+
+  const duration = /^sound (on|off)$/i.test(text.trim())
+    ? 900
+    : 3500;
+
+  notifyTimer = setTimeout(() => {
+    popup.hidden = true;
+  }, duration);
 }
 
 const game = new HelicopterGame($('gameCanvas'), ({ state, distance, best }) => {
