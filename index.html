@@ -4223,5 +4223,281 @@ function renderMessageReactions(body, reactions) {
   };
 })();
 </script>
+<script>
+(() => {
+  if (window.tokenHelicopterAudio) return;
+  window.tokenHelicopterAudio = true;
+
+  const soundButton = document.getElementById("sound");
+  const gameStage = document.getElementById("stage");
+
+  let context;
+  let master;
+  let rotor;
+  let rotorVolume;
+  let enabled = true;
+
+  try {
+    enabled = localStorage.getItem("token-helicopter-sound") !== "off";
+  } catch {}
+
+  function updateButton() {
+    game.sound = enabled;
+    soundButton.textContent = enabled ? "♫" : "♪";
+    soundButton.setAttribute("aria-pressed", String(enabled));
+    soundButton.setAttribute(
+      "aria-label",
+      enabled ? "Mute game sounds" : "Enable game sounds"
+    );
+    soundButton.title = enabled ? "Mute game sounds" : "Enable game sounds";
+    soundButton.style.color = enabled ? "var(--lime)" : "";
+  }
+
+  function initializeAudio() {
+    if (context) return;
+
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    context = new AudioContextClass();
+
+    master = context.createGain();
+    master.gain.value = enabled ? 0.65 : 0;
+    master.connect(context.destination);
+
+    // A seamless repeating rotor loop: low engine rumble
+    // mixed with pulses of filtered air noise.
+    const length = Math.round(context.sampleRate);
+    const buffer = context.createBuffer(1, length, context.sampleRate);
+    const samples = buffer.getChannelData(0);
+
+    let filteredNoise = 0;
+
+    for (let i = 0; i < length; i++) {
+      const t = i / length;
+
+      filteredNoise =
+        filteredNoise * 0.88 + (Math.random() * 2 - 1) * 0.12;
+
+      const bladePulse = Math.pow(
+        (1 + Math.cos(2 * Math.PI * 24 * t)) / 2,
+        5
+      );
+
+      const engine =
+        Math.sin(2 * Math.PI * 48 * t) * 0.12 +
+        Math.sin(2 * Math.PI * 96 * t) * 0.05;
+
+      samples[i] =
+        engine +
+        bladePulse * (
+          filteredNoise * 1.5 +
+          Math.sin(2 * Math.PI * 72 * t) * 0.22
+        );
+    }
+
+    // Smooth the loop boundary.
+    const fade = Math.round(context.sampleRate * 0.005);
+
+    for (let i = 0; i < fade; i++) {
+      samples[i] *= i / fade;
+      samples[length - 1 - i] *= i / fade;
+    }
+
+    rotor = context.createBufferSource();
+    rotor.buffer = buffer;
+    rotor.loop = true;
+
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1400;
+
+    rotorVolume = context.createGain();
+    rotorVolume.gain.value = 0;
+
+    rotor.connect(filter);
+    filter.connect(rotorVolume);
+    rotorVolume.connect(master);
+    rotor.start();
+  }
+
+  function unlockAudio() {
+    if (!enabled) return;
+
+    try {
+      initializeAudio();
+
+      if (context?.state === "suspended") {
+        context.resume().catch(() => {});
+      }
+    } catch {}
+  }
+
+  function explosion() {
+    if (
+      !enabled ||
+      !context ||
+      context.state !== "running" ||
+      document.hidden ||
+      activeGame !== "helicopter"
+    ) return;
+
+    const now = context.currentTime;
+    const duration = 1.35;
+
+    // Crunchy initial blast and fading debris.
+    const buffer = context.createBuffer(
+      1,
+      Math.ceil(context.sampleRate * duration),
+      context.sampleRate
+    );
+
+    const samples = buffer.getChannelData(0);
+    let rumble = 0;
+
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / context.sampleRate;
+      const noise = Math.random() * 2 - 1;
+
+      rumble = rumble * 0.93 + noise * 0.07;
+
+      samples[i] =
+        noise * Math.exp(-t * 10) * 0.5 +
+        rumble * Math.exp(-t * 3) * 1.5;
+    }
+
+    const blast = context.createBufferSource();
+    blast.buffer = buffer;
+
+    const filter = context.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(5500, now);
+    filter.frequency.exponentialRampToValueAtTime(180, now + duration);
+
+    const volume = context.createGain();
+    volume.gain.setValueAtTime(0.0001, now);
+    volume.gain.exponentialRampToValueAtTime(0.8, now + 0.008);
+    volume.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    blast.connect(filter);
+    filter.connect(volume);
+    volume.connect(master);
+
+    blast.onended = () => {
+      blast.disconnect();
+      filter.disconnect();
+      volume.disconnect();
+    };
+
+    blast.start(now);
+
+    // Low impact underneath the blast.
+    const boom = context.createOscillator();
+    const boomVolume = context.createGain();
+
+    boom.type = "sine";
+    boom.frequency.setValueAtTime(110, now);
+    boom.frequency.exponentialRampToValueAtTime(28, now + 0.65);
+
+    boomVolume.gain.setValueAtTime(0.0001, now);
+    boomVolume.gain.exponentialRampToValueAtTime(0.55, now + 0.012);
+    boomVolume.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+
+    boom.connect(boomVolume);
+    boomVolume.connect(master);
+
+    boom.onended = () => {
+      boom.disconnect();
+      boomVolume.disconnect();
+    };
+
+    boom.start(now);
+    boom.stop(now + 0.85);
+  }
+
+  // The existing crash calls beep(55, .3).
+  // Replace that beep with the explosion without changing scoring.
+  game.beep = function(frequency) {
+    if (frequency === 55) {
+      if (rotorVolume) {
+        rotorVolume.gain.setTargetAtTime(
+          0, context.currentTime, 0.015
+        );
+      }
+
+      explosion();
+    }
+  };
+
+  function syncAudio() {
+    if (!context) return;
+
+    const flying =
+      enabled &&
+      !document.hidden &&
+      activeGame === "helicopter" &&
+      game.state === "playing";
+
+    master.gain.setTargetAtTime(
+      enabled && !document.hidden ? 0.65 : 0,
+      context.currentTime,
+      0.025
+    );
+
+    rotorVolume.gain.setTargetAtTime(
+      flying ? (game.held ? 0.85 : 0.65) : 0,
+      context.currentTime,
+      0.045
+    );
+
+    rotor.playbackRate.setTargetAtTime(
+      game.held ? 1.16 : 1,
+      context.currentTime,
+      0.12
+    );
+  }
+
+  soundButton.onclick = () => {
+    enabled = !enabled;
+
+    try {
+      localStorage.setItem(
+        "token-helicopter-sound",
+        enabled ? "on" : "off"
+      );
+    } catch {}
+
+    updateButton();
+    unlockAudio();
+    syncAudio();
+  };
+
+  // Unlock audio during a real interaction, before ranked-run requests.
+  gameStage.addEventListener("pointerdown", unlockAudio, true);
+
+  document.addEventListener("keydown", event => {
+    if (
+      activeGame !== "helicopter" ||
+      document.querySelector("dialog[open]") ||
+      event.target.closest?.("input, textarea, [contenteditable]")
+    ) return;
+
+    if (["Space", "ArrowUp", "Enter"].includes(event.code)) {
+      unlockAudio();
+    }
+  }, true);
+
+  document.addEventListener("visibilitychange", syncAudio);
+  window.addEventListener("pagehide", () => {
+    context?.suspend().catch(() => {});
+  });
+  window.addEventListener("pageshow", unlockAudio);
+
+  setInterval(syncAudio, 80);
+  updateButton();
+})();
+</script>
 </body>
 </html>
