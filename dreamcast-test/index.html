@@ -57,7 +57,37 @@ document.getElementById('launch').onsubmit=async event=>{
    '/system/dc/dc_flash.bin':location.origin+'/emulators/dreamcast/bios/dc_flash.bin'
   };
   window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
-  window.EJS_ready=()=>show('Click Start Game inside the player. The first load downloads and extracts the game.');
+  window.EJS_ready = () => {
+    const emulator = window.EJS_emulator;
+    const originalDownloadRom = emulator.downloadRom.bind(emulator);
+  
+    emulator.downloadRom = async function(...args) {
+      const fs = this.gameManager.FS;
+      const originalMkdir = fs.mkdir;
+  
+      fs.mkdir = function(path, mode) {
+        const existing = fs.analyzePath(path);
+  
+        // ZIP folders may already exist from extracting their contents.
+        if (existing.exists && fs.isDir(existing.object.mode)) {
+          return existing.object;
+        }
+  
+        return originalMkdir.call(fs, path, mode);
+      };
+  
+      try {
+        return await originalDownloadRom(...args);
+      } finally {
+        fs.mkdir = originalMkdir;
+      }
+    };
+  
+    // Show detailed startup logs for any remaining Flycast issue.
+    emulator.debug = true;
+  
+    show("Click Start Game inside the player. Folder extraction fix loaded.");
+  };
   window.EJS_onGameStart=()=>show('Game started. Use the player menu to configure controls.');
   show('Loading Dreamcast player…');await script(base+'data/loader.js');
   document.getElementById('launch').hidden=true;
