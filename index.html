@@ -4150,7 +4150,6 @@ function renderMessageReactions(body, reactions) {
 
     const signedInSession = session;
     starting = true;
-    notice("Starting ranked run…");
 
     api("/api/leaderboards/helicopter/start", {
       method: "POST"
@@ -4213,7 +4212,6 @@ function renderMessageReactions(body, reactions) {
       })
     })
       .then(() => {
-        notice("Score saved: " + score.toLocaleString() + " m");
         if (dialog.open) loadLeaderboard();
       })
       .catch(error => {
