@@ -59,16 +59,21 @@ document.getElementById('launch').onsubmit=async event=>{
   window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
   window.EJS_ready = () => {
     const emulator = window.EJS_emulator;
+    emulator.debug = true;
+  
+    // Load BIOS manually so we can verify each file.
+    emulator.config.externalFiles = {};
+  
     const originalDownloadRom = emulator.downloadRom.bind(emulator);
   
-    emulator.downloadRom = async function(...args) {
+    emulator.downloadRom = async function (...args) {
       const fs = this.gameManager.FS;
       const originalMkdir = fs.mkdir;
   
-      fs.mkdir = function(path, mode) {
+      // Keep the ZIP folder extraction fix.
+      fs.mkdir = function (path, mode) {
         const existing = fs.analyzePath(path);
   
-        // ZIP folders may already exist from extracting their contents.
         if (existing.exists && fs.isDir(existing.object.mode)) {
           return existing.object;
         }
@@ -77,16 +82,67 @@ document.getElementById('launch').onsubmit=async event=>{
       };
   
       try {
+        show("Loading and verifying Dreamcast BIOS…");
+  
+        fs.mkdir("/system");
+        fs.mkdir("/system/dc");
+  
+        for (const [name, expectedSize] of [
+          ["dc_boot.bin", 2097152],
+          ["dc_flash.bin", 131072]
+        ]) {
+          const response = await fetch(
+            "/emulators/dreamcast/bios/" + name,
+            {
+              cache: "no-store",
+              signal: AbortSignal.timeout(30000)
+            }
+          );
+  
+          if (!response.ok) {
+            throw new Error(
+              name + " returned HTTP " + response.status
+            );
+          }
+  
+          const bytes = new Uint8Array(
+            await response.arrayBuffer()
+          );
+  
+          if (bytes.byteLength !== expectedSize) {
+            throw new Error(
+              name + " has an unexpected file size."
+            );
+          }
+  
+          const path = "/system/dc/" + name;
+          fs.writeFile(path, bytes);
+  
+          if (fs.stat(path).size !== expectedSize) {
+            throw new Error(
+              "Could not verify BIOS write: " + name
+            );
+          }
+  
+          console.info(
+            "BIOS ready:", path, bytes.byteLength, "bytes"
+          );
+        }
+  
+        show("BIOS ready. Loading and extracting Crazy Taxi…");
+  
         return await originalDownloadRom(...args);
+      } catch (error) {
+        show("Could not prepare game: " + error.message);
+        throw error;
       } finally {
         fs.mkdir = originalMkdir;
       }
     };
   
-    // Show detailed startup logs for any remaining Flycast issue.
-    emulator.debug = true;
-  
-    show("Click Start Game inside the player. Folder extraction fix loaded.");
+    show(
+      "Click Start Game inside the player. BIOS and folder fixes loaded."
+    );
   };
   window.EJS_onGameStart=()=>show('Game started. Use the player menu to configure controls.');
   show('Loading Dreamcast player…');await script(base+'data/loader.js');
