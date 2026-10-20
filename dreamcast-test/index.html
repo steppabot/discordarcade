@@ -59,6 +59,19 @@ document.getElementById('launch').onsubmit=async event=>{
   window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
   window.EJS_ready = () => {
     const emulator = window.EJS_emulator;
+    const originalWarn = console.warn;
+    
+    console.warn = function (...args) {
+      originalWarn.apply(console, args);
+    
+      if (String(args[0]).includes("Failed to start game")) {
+        const error = args[1];
+        const detail = error?.stack || error?.message ||
+          String(error || "No error details provided");
+    
+        show("Dreamcast startup failed:\n" + detail);
+      }
+    };
     emulator.debug = true;
   
     // Load BIOS manually so we can verify each file.
