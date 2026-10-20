@@ -72,7 +72,7 @@ document.getElementById('launch').onsubmit=async event=>{
         show("Dreamcast startup failed:\n" + detail);
       }
     };
-    emulator.debug = true;
+    emulator.debug = false;
   
     // Load BIOS manually so we can verify each file.
     emulator.config.externalFiles = {};
