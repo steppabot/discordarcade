@@ -66,7 +66,9 @@ document.getElementById('launch').onsubmit=async event=>{
       const originalCallMain = this.Module.callMain;
     
       this.Module.callMain = function () {
-        return originalCallMain.call(this, ["-v"]);
+        const args = ["-v", ""];
+        console.info("Actual BIOS-test arguments:", args);
+        return originalCallMain.call(this, args);
       };
     
       try {
