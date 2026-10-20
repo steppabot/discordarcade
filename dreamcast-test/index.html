@@ -59,6 +59,22 @@ document.getElementById('launch').onsubmit=async event=>{
   window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
   window.EJS_ready = () => {
     const emulator = window.EJS_emulator;
+    // Temporary diagnostic: boot Dreamcast without a game.
+    const originalStartGame = emulator.startGame.bind(emulator);
+    
+    emulator.startGame = function () {
+      const originalCallMain = this.Module.callMain;
+    
+      this.Module.callMain = function () {
+        return originalCallMain.call(this, ["-v"]);
+      };
+    
+      try {
+        return originalStartGame();
+      } finally {
+        this.Module.callMain = originalCallMain;
+      }
+    };
     const originalWarn = console.warn;
     
     console.warn = function (...args) {
@@ -142,7 +158,8 @@ document.getElementById('launch').onsubmit=async event=>{
           );
         }
   
-        show("BIOS ready. Loading and extracting Crazy Taxi…");
+        show("BIOS verified. Starting Dreamcast without a disc…");
+        return;
   
         return await originalDownloadRom(...args);
       } catch (error) {
