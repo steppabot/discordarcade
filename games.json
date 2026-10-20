@@ -2115,5 +2115,14 @@
     "url": "/games/genesis/zombiesatemyneighbors.md",
     "icon": "/images/zombiesatemyneighbors.jpg",
     "subtitle": "SEGA GENESIS · ACTION"
+  },
+  {
+    "id": "goldeneye007",
+    "title": "GoldenEye 007",
+    "type": "retro",
+    "core": "n64",
+    "url": "/games/n64/goldeneye007.z64",
+    "icon": "/images/goldeneye007.jpg",
+    "subtitle": "N64 · SHOOTER"
   }
 ]
