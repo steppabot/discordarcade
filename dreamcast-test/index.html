@@ -141,9 +141,28 @@ document.getElementById('launch').onsubmit=async event=>{
             "BIOS ready:", path, bytes.byteLength, "bytes"
           );
         }
-  
+          
         show("BIOS ready. Loading and extracting Crazy Taxi…");
-        return await originalDownloadRom(...args);
+        await originalDownloadRom(...args);
+        
+        const folder = "/crazytaxi/";
+        const title = "Crazy Taxi (USA) (En,Ja)";
+        
+        // Reuse the existing BIN files with a GDI disc descriptor.
+        const gdi = [
+          "3",
+          `1 0 4 2352 "${title} (Track 1).bin" 0`,
+          `2 600 0 2352 "${title} (Track 2).bin" 352800`,
+          `3 45000 4 2352 "${title} (Track 3).bin" 0`
+        ].join("\n") + "\n";
+        
+        fs.writeFile(folder + "crazytaxi.gdi", gdi);
+        
+        // Tell EmulatorJS to launch the GDI instead of the CUE.
+        this.fileName = "crazytaxi/crazytaxi.gdi";
+        
+        show("Disc prepared. Starting Crazy Taxi…");
+        return;
   
         return await originalDownloadRom(...args);
       } catch (error) {
