@@ -2914,7 +2914,8 @@ function renderDiscordTokens(container, content, mentions = []) {
   const systems = [
     { id: "snes", title: "SNES", color: "#a99ae8" },
     { id: "nes", title: "NES", color: "#ef6666" },
-    { id: "segaMD", title: "SEGA Genesis", color: "#6fa8ff" }
+    { id: "segaMD", title: "SEGA Genesis", color: "#6fa8ff" },
+    { id: "n64", title: "Nintendo 64", color: "#49b96e" }
   ];
 
   let category = categories.querySelector(
@@ -2943,16 +2944,19 @@ function renderDiscordTokens(container, content, mentions = []) {
 
   function coreOf(game) {
     if (game.type !== "retro") return "";
-
+  
     try {
-      return game.core ||
+      const core = game.core ||
         new URL(game.url, document.baseURI).searchParams.get("core") ||
         "";
+  
+      return ["n64", "parallel-n64", "mupen64plus_next"].includes(core)
+        ? "n64"
+        : core;
     } catch {
       return "";
     }
   }
-
   function fallbackThumbnail(color) {
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80">
