@@ -1418,6 +1418,55 @@ function fitEmbeddedGame() {
 
 new ResizeObserver(fitEmbeddedGame).observe(stage);
 
+// Multiplayer group links (?group=ID from the Discord bot) open the group's
+// game in group mode. The id is kept for this tab so it survives sign-in.
+const GROUP_KEY = 'token-arcade-group';
+let pendingGroup = null; // { id, game }
+
+(function readGroupLink() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('group');
+  if (!id || !/^[A-Za-z0-9_-]{8,24}$/.test(id)) return;
+  try { sessionStorage.setItem(GROUP_KEY, id); } catch {}
+  params.delete('group');
+  const query = params.toString();
+  history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+})();
+
+function clearGroup() {
+  pendingGroup = null;
+  try { sessionStorage.removeItem(GROUP_KEY); } catch {}
+}
+
+async function openPendingGroup() {
+  let id = null;
+  try { id = sessionStorage.getItem(GROUP_KEY); } catch {}
+  if (!id) return;
+
+  let gameId = 'goldeneye007';
+  try {
+    const response = await fetch(API_ROOT + '/arcade/groups/' + encodeURIComponent(id), {
+      credentials: 'include', cache: 'no-store'
+    });
+    if (response.status === 404) {
+      clearGroup();
+      notice('That multiplayer group has ended.');
+      return;
+    }
+    // Signed out (401): open the game anyway; it will ask for sign-in.
+    if (response.ok) gameId = (await response.json()).group.game || gameId;
+  } catch {}
+
+  if (!allGames.some(g => g.id === gameId)) return;
+  pendingGroup = { id, game: gameId };
+  selectGame(gameId);
+}
+
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.data?.type !== 'token-group') return;
+  if (event.data.state === 'ended') clearGroup();
+});
+
 function selectGame(id) {
   const selected = allGames.find(g => g.id === id);
   if (!selected) return;
@@ -1425,6 +1474,10 @@ function selectGame(id) {
   game.pause();
   activeGame = id;
   game.setActive(id === 'helicopter');
+
+  // Picking another game leaves group mode for this tab.
+  const group = pendingGroup && pendingGroup.game === id ? pendingGroup.id : null;
+  if (!group && pendingGroup) clearGroup();
 
   for (const card of document.querySelectorAll('.game-card')) {
     const on = card.dataset.id === id || (card.id === 'helicopterCard' && id === 'helicopter');
@@ -1449,7 +1502,9 @@ function selectGame(id) {
     const frame = document.createElement('iframe');
     frame.className = 'custom-frame';
     frame.title = selected.title;
-    frame.src = selected.url;
+    frame.src = group
+      ? selected.url + '&group=' + encodeURIComponent(group)
+      : selected.url;
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-pointer-lock');
     frame.allow = 'fullscreen; gamepad';
     stage.append(frame);
@@ -2548,8 +2603,8 @@ connect();
 
   filterCards();
 
-  // Reload using the extended catalog format.
-  loadGameCatalog();
+  // Reload using the extended catalog format, then open a group link.
+  loadGameCatalog().then(openPendingGroup);
 })();
 </script>
 <style>
