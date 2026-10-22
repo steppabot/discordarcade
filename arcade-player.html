@@ -149,7 +149,7 @@
 
     // N64 (mupen64plus_next) settings. The core reads these once, at boot.
     // Bump the version whenever this list changes so saved values reset.
-    const N64_PRESET_VERSION = "1";
+    const N64_PRESET_VERSION = "2";
 
     const N64_OPTIONS = {
       // Render near native resolution.
@@ -167,8 +167,45 @@
       // Remove this line if your players' machines are fast enough.
       "mupen64plus-CountPerOp": "3",
 
+      // Pace the emulator by its audio instead of the display refresh.
+      // With vsync on, a frame that runs slightly long waits for the next
+      // refresh and costs a whole extra frame; off, it catches up.
+      "vsync": "disabled",
+
       "shader": "disabled"
     };
+
+    // Audio buffer for N64, in ms (EmulatorJS uses 64). A bigger buffer
+    // rides out short stalls, like a shader compiling, without a gap.
+    const N64_AUDIO_LATENCY = 128;
+
+    // EmulatorJS has no setting for the audio buffer, so adjust the
+    // RetroArch config it generates as soon as its class is defined.
+    function setAudioLatency(ms) {
+      let GameManager;
+
+      Object.defineProperty(window, "EJS_GameManager", {
+        configurable: true,
+
+        get() {
+          return GameManager;
+        },
+
+        set(value) {
+          GameManager = value;
+          const original = value?.prototype?.getRetroArchCfg;
+
+          if (typeof original !== "function") return;
+
+          value.prototype.getRetroArchCfg = function() {
+            return original.call(this).replace(
+              /^audio_latency = \d+$/m,
+              `audio_latency = ${ms}`
+            );
+          };
+        }
+      });
+    }
 
     // EmulatorJS only writes EJS_defaultOptions into the core's boot config
     // when it already has saved settings for the game. On a first launch
@@ -281,6 +318,7 @@
         if (core === "n64" || core === "mupen64plus_next") {
           Object.assign(window.EJS_defaultOptions, N64_OPTIONS);
           prepareBootOptions("n64", title, N64_OPTIONS, N64_PRESET_VERSION);
+          setAudioLatency(N64_AUDIO_LATENCY);
         }
 
         const bios = params.get("bios");
