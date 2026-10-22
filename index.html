@@ -4303,7 +4303,25 @@ function renderMessageReactions(body, reactions) {
   let rotor;
   let rotorVolume;
   let parked = false;
+  let noiseBuffer = null;
   let enabled = true;
+
+  // Two seconds of white noise, shared by every layer of the crash sound.
+  // Building fresh noise on each crash (about four seconds of samples)
+  // stalled the frame where the helicopter hit the wall.
+  function getNoiseBuffer() {
+    if (!noiseBuffer) {
+      const length = Math.ceil(context.sampleRate * 2);
+      noiseBuffer = context.createBuffer(1, length, context.sampleRate);
+      const samples = noiseBuffer.getChannelData(0);
+
+      for (let i = 0; i < length; i++) {
+        samples[i] = Math.random() * 2 - 1;
+      }
+    }
+
+    return noiseBuffer;
+  }
 
   try {
     enabled = localStorage.getItem("token-helicopter-sound") !== "off";
@@ -4334,6 +4352,9 @@ function renderMessageReactions(body, reactions) {
     master = context.createGain();
     master.gain.value = enabled ? 0.65 : 0;
     master.connect(context.destination);
+
+    // Make the crash noise now, so a crash doesn't build it mid-frame.
+    getNoiseBuffer();
 
     // A seamless repeating rotor loop: low engine rumble
     // mixed with pulses of filtered air noise.
@@ -4440,20 +4461,12 @@ function explosion() {
     type = "lowpass"
   }) {
     const start = now + delay;
-    const buffer = context.createBuffer(
-      1,
-      Math.ceil(context.sampleRate * duration),
-      context.sampleRate
-    );
+    const noise = getNoiseBuffer();
 
-    const samples = buffer.getChannelData(0);
-
-    for (let i = 0; i < samples.length; i++) {
-      samples[i] = Math.random() * 2 - 1;
-    }
-
+    // Play the shared noise from a random point, looping if needed.
     const source = context.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = noise;
+    source.loop = true;
 
     const filter = context.createBiquadFilter();
     filter.type = type;
@@ -4485,7 +4498,8 @@ function explosion() {
       gain.disconnect();
     };
 
-    source.start(start);
+    source.start(start, Math.random() * noise.duration);
+    source.stop(start + duration);
   }
 
   function impactTone({
