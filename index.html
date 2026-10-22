@@ -1738,105 +1738,139 @@ $('fileInput').onchange = () => {
   renderAttachments();
 };
 
+// Rebuilding all 50 messages on every poll blocked this page (and any game
+// running in it) for tens of milliseconds. Keep the rows of messages that
+// haven't changed, and skip the DOM work entirely when nothing did.
+const messageRows = new Map(); // message id -> { key, row }
+let emptyChatNote = null;
+
 function renderMessages(items) {
   const container = $('chatBody');
-  const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 75;
-  const oldScroll = container.scrollTop;
   const list = $('messages');
-  list.replaceChildren();
+  const rows = [];
+  const seen = new Set();
 
   if (!items.length) {
-    const p = document.createElement('p');
-    p.className = 'chat-note';
-    p.textContent = 'No messages yet. Start the conversation.';
-    list.append(p);
+    if (!emptyChatNote) {
+      emptyChatNote = document.createElement('p');
+      emptyChatNote.className = 'chat-note';
+      emptyChatNote.textContent = 'No messages yet. Start the conversation.';
+    }
+    rows.push(emptyChatNote);
   }
 
   for (const m of items) {
-    const row = document.createElement('div');
-    row.className = 'message';
+    const key = JSON.stringify(m);
+    const id = String(m.id ?? key);
+    let cached = messageRows.get(id);
 
-    const avatarFallback = document.createElement('span');
-    avatarFallback.className = 'avatar';
-    avatarFallback.textContent = m.author.name.slice(0, 1).toUpperCase();
-
-    if (m.author.avatar) {
-      const img = document.createElement('img');
-      img.className = 'avatar';
-      img.alt = '';
-      img.src = m.author.avatar;
-      img.referrerPolicy = 'no-referrer';
-      img.onerror = () => img.replaceWith(avatarFallback);
-      row.append(img);
-    } else {
-      row.append(avatarFallback);
+    if (!cached || cached.key !== key) {
+      cached = { key, row: createMessageRow(m) };
+      messageRows.set(id, cached);
     }
 
-    const body = document.createElement('div');
-    body.className = 'message-main';
-
-    const head = document.createElement('div');
-    head.className = 'message-head';
-
-    const name = document.createElement('b');
-    name.textContent = m.author.name;
-    if (/^#[0-9a-f]{6}$/i.test(m.author.color || '')) name.style.color = m.author.color;
-
-    const time = document.createElement('small');
-    time.textContent = new Date(m.timestamp).toLocaleTimeString([], {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-
-    head.append(name, time);
-
-    if (m.author.bot) {
-      const tag = document.createElement('small');
-      tag.textContent = 'APP';
-      head.append(tag);
-    }
-
-    const text = document.createElement('div');
-    text.className = 'message-text';
-    renderDiscordText(
-      text,
-      m.content || (
-        ((m.attachments || []).length || (m.embeds || []).length)
-          ? ""
-          : "(Embed or content unavailable)"
-      ),
-      m.mentions || []
-    );
-
-    for (const attachment of m.attachments || []) {
-      const link = document.createElement('a');
-      link.href = attachment.url;
-      link.textContent = attachment.name;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-
-      if (isImageAttachment(attachment)) {
-        const image = document.createElement('img');
-        image.src = attachment.url;
-        image.alt = attachment.name;
-        image.className = 'message-media';
-        image.loading = 'lazy';
-        link.replaceChildren(image);
-      } else if (isVideoAttachment(attachment)) {
-        text.append(createAttachmentVideo(attachment));
-      }
-
-      text.append(link);
-    }
-
-    renderDiscordEmbeds(text, m.embeds || [], m.mentions || []);
-    body.append(head, text);
-    renderMessageReactions(body, m.reactions);
-    row.append(body);
-    list.append(row);
+    seen.add(id);
+    rows.push(cached.row);
   }
 
+  for (const id of messageRows.keys()) {
+    if (!seen.has(id)) messageRows.delete(id);
+  }
+
+  const current = list.children;
+  if (
+    current.length === rows.length &&
+    rows.every((row, index) => current[index] === row)
+  ) return;
+
+  const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 75;
+  const oldScroll = container.scrollTop;
+  list.replaceChildren(...rows);
   container.scrollTop = nearBottom ? container.scrollHeight : oldScroll;
+}
+
+function createMessageRow(m) {
+  const row = document.createElement('div');
+  row.className = 'message';
+
+  const avatarFallback = document.createElement('span');
+  avatarFallback.className = 'avatar';
+  avatarFallback.textContent = m.author.name.slice(0, 1).toUpperCase();
+
+  if (m.author.avatar) {
+    const img = document.createElement('img');
+    img.className = 'avatar';
+    img.alt = '';
+    img.src = m.author.avatar;
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = () => img.replaceWith(avatarFallback);
+    row.append(img);
+  } else {
+    row.append(avatarFallback);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'message-main';
+
+  const head = document.createElement('div');
+  head.className = 'message-head';
+
+  const name = document.createElement('b');
+  name.textContent = m.author.name;
+  if (/^#[0-9a-f]{6}$/i.test(m.author.color || '')) name.style.color = m.author.color;
+
+  const time = document.createElement('small');
+  time.textContent = new Date(m.timestamp).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  head.append(name, time);
+
+  if (m.author.bot) {
+    const tag = document.createElement('small');
+    tag.textContent = 'APP';
+    head.append(tag);
+  }
+
+  const text = document.createElement('div');
+  text.className = 'message-text';
+  renderDiscordText(
+    text,
+    m.content || (
+      ((m.attachments || []).length || (m.embeds || []).length)
+        ? ""
+        : "(Embed or content unavailable)"
+    ),
+    m.mentions || []
+  );
+
+  for (const attachment of m.attachments || []) {
+    const link = document.createElement('a');
+    link.href = attachment.url;
+    link.textContent = attachment.name;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+
+    if (isImageAttachment(attachment)) {
+      const image = document.createElement('img');
+      image.src = attachment.url;
+      image.alt = attachment.name;
+      image.className = 'message-media';
+      image.loading = 'lazy';
+      link.replaceChildren(image);
+    } else if (isVideoAttachment(attachment)) {
+      text.append(createAttachmentVideo(attachment));
+    }
+
+    text.append(link);
+  }
+
+  renderDiscordEmbeds(text, m.embeds || [], m.mentions || []);
+  body.append(head, text);
+  renderMessageReactions(body, m.reactions);
+  row.append(body);
+  return row;
 }
 
 function stopLive() {
