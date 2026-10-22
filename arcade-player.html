@@ -44,6 +44,16 @@
       touch-action: none;
     }
 
+    /* Group host: a fixed 4:3 emulator under the shared view, so the
+       stream has no letterboxing and every player's crop lines up. */
+    #game.stream-source {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 640px;
+      height: 480px;
+    }
+
     #status {
       position: absolute;
       inset: 0;
@@ -274,6 +284,50 @@
       }
     }
 
+    // Load EmulatorJS. A group host starts right away (the Start button
+    // was the click) and renders at a fixed 4:3 size for streaming.
+    async function bootRetro(core, url, title, group = {}) {
+      window.EJS_player = "#game";
+      window.EJS_core = core;
+      window.EJS_gameUrl = url;
+      window.EJS_gameName = title;
+
+      window.EJS_pathtodata =
+        "https://cdn.emulatorjs.org/stable/data/";
+
+      window.EJS_color = "#2ed7e9";
+      window.EJS_backgroundColor = "#15102e";
+      window.EJS_startOnLoaded = Boolean(group.host);
+      window.EJS_threads = false;
+
+      window.EJS_defaultOptions = {
+        "save-state-location": "browser",
+        "save-state-slot": 1
+      };
+
+      // N64: lighter rendering, applied at boot.
+      if (core === "n64" || core === "mupen64plus_next") {
+        Object.assign(window.EJS_defaultOptions, N64_OPTIONS);
+        prepareBootOptions("n64", title, N64_OPTIONS, N64_PRESET_VERSION);
+        setAudioLatency(N64_AUDIO_LATENCY);
+      }
+
+      const bios = params.get("bios");
+
+      if (bios) {
+        window.EJS_biosUrl = fileURL(bios);
+      }
+
+      if (group.host) {
+        container.classList.add("stream-source");
+        window.EJS_onGameStart = group.onStart;
+      }
+
+      await loadScript(
+        window.EJS_pathtodata + "loader.js"
+      );
+    }
+
     async function start() {
       const type = params.get("type");
       const url = fileURL(params.get("url"));
@@ -286,8 +340,6 @@
         message.textContent = "Checking premium access…";
         await access();
 
-        message.textContent = "Loading emulator…";
-
         const core = params.get("core");
 
         if (!core || !/^[a-z0-9_-]+$/i.test(core)) {
@@ -296,41 +348,25 @@
           );
         }
 
-        window.EJS_player = "#game";
-        window.EJS_core = core;
-        window.EJS_gameUrl = url;
-        window.EJS_gameName = title;
+        // Multiplayer group: the lobby decides who runs the emulator.
+        const group = params.get("group");
 
-        window.EJS_pathtodata =
-          "https://cdn.emulatorjs.org/stable/data/";
+        if (group && /^[A-Za-z0-9_-]{8,24}$/.test(group)) {
+          await loadScript("arcade-group.js");
 
-        window.EJS_color = "#2ed7e9";
-        window.EJS_backgroundColor = "#15102e";
-        window.EJS_startOnLoaded = false;
-        window.EJS_threads = false;
-
-        window.EJS_defaultOptions = {
-          "save-state-location": "browser",
-          "save-state-slot": 1
-        };
-
-        // N64: lighter rendering, applied at boot.
-        if (core === "n64" || core === "mupen64plus_next") {
-          Object.assign(window.EJS_defaultOptions, N64_OPTIONS);
-          prepareBootOptions("n64", title, N64_OPTIONS, N64_PRESET_VERSION);
-          setAudioLatency(N64_AUDIO_LATENCY);
+          await window.TokenGroup.start({
+            groupId: group,
+            statusBox,
+            message,
+            game: { title },
+            bootEmulator: ({ onStart }) =>
+              bootRetro(core, url, title, { host: true, onStart })
+          });
+          return;
         }
 
-        const bios = params.get("bios");
-
-        if (bios) {
-          window.EJS_biosUrl = fileURL(bios);
-        }
-
-        await loadScript(
-          window.EJS_pathtodata + "loader.js"
-        );
-
+        message.textContent = "Loading emulator…";
+        await bootRetro(core, url, title);
         statusBox.hidden = true;
         return;
       }
