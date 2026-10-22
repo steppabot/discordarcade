@@ -214,12 +214,12 @@
           "save-state-slot": 1
         };
 
-        // Lower N64 rendering resolution and disable extra effects.
+        // Use the alternate N64 emulator at a low rendering resolution.
         if (core === "n64" || core === "mupen64plus_next") {
+          window.EJS_core = "parallel_n64";
+        
           Object.assign(window.EJS_defaultOptions, {
-            "mupen64plus-43screensize": "320x240",
-            "mupen64plus-MultiSampling": "0",
-            "mupen64plus-FXAA": "0",
+            "parallel-n64-screensize": "320x240",
             "shader": "disabled"
           });
         }
