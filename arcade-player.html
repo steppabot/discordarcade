@@ -147,6 +147,69 @@
       });
     }
 
+    // N64 (mupen64plus_next) settings. The core reads these once, at boot.
+    // Bump the version whenever this list changes so saved values reset.
+    const N64_PRESET_VERSION = "1";
+
+    const N64_OPTIONS = {
+      // Render near native resolution.
+      "mupen64plus-43screensize": "320x240",
+      "mupen64plus-MultiSampling": "0",
+      "mupen64plus-FXAA": "0",
+
+      // Skip the per-frame framebuffer readbacks. The default "Software"
+      // depth copy re-renders every frame's depth buffer on the CPU.
+      "mupen64plus-EnableCopyDepthToRDRAM": "Off",
+      "mupen64plus-EnableCopyColorToRDRAM": "Off",
+
+      // Emulate a slightly slower N64 CPU. GoldenEye drops a few in-game
+      // frames but keeps real-time speed, so audio no longer starves.
+      // Remove this line if your players' machines are fast enough.
+      "mupen64plus-CountPerOp": "3",
+
+      "shader": "disabled"
+    };
+
+    // EmulatorJS only writes EJS_defaultOptions into the core's boot config
+    // when it already has saved settings for the game. On a first launch
+    // the core boots on its own defaults (640x480, CPU depth copy) and our
+    // options arrive after boot, too late to matter. Seed that record so
+    // they apply at boot, and clear stale saved values once per version.
+    function prepareBootOptions(system, title, options, version) {
+      const key = `ejs-1-${system}-${title}-settings`;
+      const presetKey = `token-arcade-preset:${key}`;
+
+      try {
+        let saved = null;
+
+        try {
+          saved = JSON.parse(localStorage.getItem(key));
+        } catch {
+          // Unreadable record: replace it below.
+        }
+
+        if (!saved || typeof saved !== "object") {
+          saved = {};
+        }
+
+        if (!saved.settings || typeof saved.settings !== "object") {
+          saved.settings = {};
+        }
+
+        if (localStorage.getItem(presetKey) !== version) {
+          for (const name of Object.keys(options)) {
+            delete saved.settings[name];
+          }
+
+          localStorage.setItem(presetKey, version);
+        }
+
+        localStorage.setItem(key, JSON.stringify(saved));
+      } catch {
+        // Storage blocked: the game still runs on the core's defaults.
+      }
+    }
+
     // Verify premium access before loading a retro game.
     async function access() {
       const response = await fetch(
@@ -214,14 +277,10 @@
           "save-state-slot": 1
         };
 
-        // Use the alternate N64 emulator at a low rendering resolution.
+        // N64: lighter rendering, applied at boot.
         if (core === "n64" || core === "mupen64plus_next") {
-          window.EJS_core = "parallel_n64";
-        
-          Object.assign(window.EJS_defaultOptions, {
-            "parallel-n64-screensize": "320x240",
-            "shader": "disabled"
-          });
+          Object.assign(window.EJS_defaultOptions, N64_OPTIONS);
+          prepareBootOptions("n64", title, N64_OPTIONS, N64_PRESET_VERSION);
         }
 
         const bios = params.get("bios");
