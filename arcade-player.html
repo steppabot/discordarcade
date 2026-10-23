@@ -159,7 +159,7 @@
 
     // N64 (mupen64plus_next) settings. The core reads these once, at boot.
     // Bump the version whenever this list changes so saved values reset.
-    const N64_PRESET_VERSION = "2";
+    const N64_PRESET_VERSION = "3";
 
     const N64_OPTIONS = {
       // Render near native resolution.
@@ -172,10 +172,9 @@
       "mupen64plus-EnableCopyDepthToRDRAM": "Off",
       "mupen64plus-EnableCopyColorToRDRAM": "Off",
 
-      // Emulate a slightly slower N64 CPU. GoldenEye drops a few in-game
-      // frames but keeps real-time speed, so audio no longer starves.
-      // Remove this line if your players' machines are fast enough.
-      "mupen64plus-CountPerOp": "3",
+      // N64 CPU time per frame. "0" uses the core's built-in value for
+      // each game; N64_GAME_OPTIONS below overrides it for specific games.
+      "mupen64plus-CountPerOp": "0",
 
       // Pace the emulator by its audio instead of the display refresh.
       // With vsync on, a frame that runs slightly long waits for the next
@@ -184,6 +183,24 @@
 
       "shader": "disabled"
     };
+
+    // Per-game N64 tuning, keyed by ROM file name. Games whose speed is
+    // tied to frames rendered go into slow motion when starved of CPU time,
+    // so only lower it where the game copes.
+    const N64_GAME_OPTIONS = {
+      // GoldenEye keeps real-time speed while dropping in-game frames, so
+      // a slower N64 CPU (3) saves host work and keeps audio fed.
+      "goldeneye007.z64": { "mupen64plus-CountPerOp": "3" },
+
+      // Revenge slows down at 3 (20 of its 30 frames); 2 is full speed at
+      // a lighter load than the core's own value (1).
+      "wcwvsnworevenge.z64": { "mupen64plus-CountPerOp": "2" }
+    };
+
+    function n64Options(url) {
+      const file = decodeURIComponent(new URL(url).pathname.split("/").pop() || "").toLowerCase();
+      return { ...N64_OPTIONS, ...(N64_GAME_OPTIONS[file] || {}) };
+    }
 
     // Audio buffer for N64, in ms (EmulatorJS uses 64). A bigger buffer
     // rides out short stalls, like a shader compiling, without a gap.
@@ -307,8 +324,9 @@
 
       // N64: lighter rendering, applied at boot.
       if (core === "n64" || core === "mupen64plus_next") {
-        Object.assign(window.EJS_defaultOptions, N64_OPTIONS);
-        prepareBootOptions("n64", title, N64_OPTIONS, N64_PRESET_VERSION);
+        const options = n64Options(url);
+        Object.assign(window.EJS_defaultOptions, options);
+        prepareBootOptions("n64", title, options, N64_PRESET_VERSION);
         setAudioLatency(N64_AUDIO_LATENCY);
       }
 
