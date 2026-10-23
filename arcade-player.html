@@ -159,7 +159,7 @@
 
     // N64 (mupen64plus_next) settings. The core reads these once, at boot.
     // Bump the version whenever this list changes so saved values reset.
-    const N64_PRESET_VERSION = "3";
+    const N64_PRESET_VERSION = "4";
 
     const N64_OPTIONS = {
       // Render near native resolution.
@@ -174,7 +174,9 @@
 
       // N64 CPU time per frame. "0" uses the core's built-in value for
       // each game; N64_GAME_OPTIONS below overrides it for specific games.
+      // The effective value is CountPerOp / 2^CountPerOpDenomPot.
       "mupen64plus-CountPerOp": "0",
+      "mupen64plus-CountPerOpDenomPot": "0",
 
       // Pace the emulator by its audio instead of the display refresh.
       // With vsync on, a frame that runs slightly long waits for the next
@@ -192,9 +194,13 @@
       // a slower N64 CPU (3) saves host work and keeps audio fed.
       "goldeneye007.z64": { "mupen64plus-CountPerOp": "3" },
 
-      // Revenge slows down at 3 (20 of its 30 frames); 2 is full speed at
-      // a lighter load than the core's own value (1).
-      "wcwvsnworevenge.z64": { "mupen64plus-CountPerOp": "2" }
+      // Revenge slows down when starved: 3 draws 20 of its 30 frames, and
+      // 2 draws 25 with four wrestlers in the ring. 1.5 (3 / 2^1) holds
+      // 30 in 4-man matches at less host work than the core's own 1.
+      "wcwvsnworevenge.z64": {
+        "mupen64plus-CountPerOp": "3",
+        "mupen64plus-CountPerOpDenomPot": "1"
+      }
     };
 
     function n64Options(url) {
