@@ -2124,5 +2124,14 @@
     "url": "/games/n64/goldeneye007.z64",
     "icon": "/images/goldeneye007.jpg",
     "subtitle": "N64 · SHOOTER"
+  },
+  {
+    "id": "wcwvsnworevenge",
+    "title": "WCW vs NWO Revenge",
+    "type": "retro",
+    "core": "n64",
+    "url": "/games/n64/wcwvsnworevenge.z64",
+    "icon": "/images/wcwvsnworevenge.jpg",
+    "subtitle": "N64 · WRESTLING"
   }
 ]
