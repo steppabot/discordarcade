@@ -183,8 +183,29 @@
   }
 
   const CONTROLS_HELP =
-    "Keyboard: T F G H move · X = A · S = B · Tab = Z (fire) · Q / E = L / R · " +
+    "Keyboard: T F G H move · X = A · S = B · Tab = Z · Q / E = L / R · " +
     "I J K L = C buttons · Enter = Start. Gamepads work too.";
+
+  // How each group game is shown and set up. Keys match games.json ids.
+  //  view "split":  the game splits the screen; each player sees their part.
+  //  view "shared": one screen for everyone.
+  //  fps: the stream's frame rate (lower = less work for the host).
+  const GAME_INFO = {
+    goldeneye007: {
+      view: "split",
+      fps: 60,
+      hint: (players) =>
+        `In GoldenEye, pick 2. MULTIPLAYER and set Players to ${players}.`
+    },
+    wcwvsnworevenge: {
+      view: "shared",
+      fps: 30, // Revenge draws 30 frames per second
+      hint: () =>
+        "In Revenge, pick Exhibition or Special Match and a mode with human " +
+        "players (like 1P vs 2P). Each player picks their own wrestler."
+    }
+  };
+  const DEFAULT_GAME = { view: "shared", fps: 60, hint: () => "" };
 
   // ------------------------------------------------------------------ main
 
@@ -257,6 +278,7 @@
     const myId = String(joined.you.id);
 
     let state = { group: joined.group, you: joined.you };
+    const gameInfo = () => GAME_INFO[state.group.game] || DEFAULT_GAME;
     let socket = null;
     let retry = 0;
     let finished = false;
@@ -421,7 +443,7 @@
       note.className = "tg-keys";
       note.textContent = lobbyNoteText ||
         (you.host
-          ? `Start when everyone has a green dot. In GoldenEye, pick 2. MULTIPLAYER and set Players to ${Math.max(online, 2)}.`
+          ? `Start when everyone has a green dot. ${gameInfo().hint(Math.max(online, 2))}`.trim()
           : `Waiting for ${host ? host.name : "the host"} to start the game.`);
 
       const keys = document.createElement("p");
@@ -517,10 +539,13 @@
       resize.observe(view);
       layout();
 
-      const stopWatching = watchLayout(video, (next) => {
-        crop = region(next, slot);
-        layout();
-      });
+      // Split-screen games crop to this player's part; others show it all.
+      const stopWatching = gameInfo().view === "split"
+        ? watchLayout(video, (next) => {
+          crop = region(next, slot);
+          layout();
+        })
+        : () => {};
 
       return {
         view,
@@ -669,7 +694,9 @@
 
       async function capture() {
         const emulator = window.EJS_emulator;
-        const video = emulator.canvas.captureStream(60);
+        // Each guest gets its own encoded stream, so match the game's frame
+        // rate instead of always encoding 60.
+        const video = emulator.canvas.captureStream(gameInfo().fps);
         video.getVideoTracks().forEach((track) => {
           track.contentHint = "motion";
         });
