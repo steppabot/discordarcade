@@ -1374,15 +1374,37 @@ document.addEventListener('visibilitychange', () => {
 
 $('messageInput').addEventListener('focus', () => game.pause());
 
+// iPhones (and some in-app browsers, like Discord's) only allow videos to
+// go fullscreen. There, the button stretches the game over the whole page.
+function setFillScreen(on) {
+  $('gameWindow').classList.toggle('fill-screen', on);
+  document.documentElement.classList.toggle('fill-screen-lock', on);
+  $('fullscreen').setAttribute('aria-pressed', String(on));
+  if (on) window.scrollTo(0, 0);
+}
+
 $('fullscreen').onclick = async () => {
+  const win = $('gameWindow');
+  if (win.classList.contains('fill-screen')) return setFillScreen(false);
+
   try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else if ($('gameWindow').requestFullscreen) await $('gameWindow').requestFullscreen();
-    else notice('Fullscreen is not supported in this browser.');
-  } catch {
-    notice('Fullscreen is not available here.');
-  }
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      return;
+    }
+    const request = win.requestFullscreen || win.webkitRequestFullscreen;
+    if (request) {
+      await request.call(win);
+      return;
+    }
+  } catch {}
+
+  setFillScreen(true);
 };
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('gameWindow').classList.contains('fill-screen')) setFillScreen(false);
+});
 
 for (const el of document.querySelectorAll('[data-close]')) {
   el.onclick = () => el.closest('dialog').close();
@@ -4768,5 +4790,53 @@ function explosion() {
   updateButton();
 })();
 </script>
+<style>
+  /* "Fill the screen" mode for browsers without real fullscreen (iPhone).
+     Last in the page, with an id selector, so layout rules above can't
+     override it. */
+  #gameWindow.fill-screen {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #080b08 !important;
+  }
+
+  #gameWindow.fill-screen .game-topline {
+    display: none !important;
+  }
+
+  #gameWindow.fill-screen .stage {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    aspect-ratio: auto !important;
+  }
+
+  #gameWindow.fill-screen canvas {
+    object-fit: contain;
+  }
+
+  html.fill-screen-lock,
+  html.fill-screen-lock body {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  /* .play-area isolates its own layer, and the chat panel comes after it,
+     so lift that whole layer above the rest of the page. */
+  html.fill-screen-lock .play-area {
+    z-index: 1000 !important;
+  }
+</style>
 </body>
 </html>
