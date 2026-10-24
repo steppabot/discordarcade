@@ -577,6 +577,7 @@
       let stream = null;
       let view = null;
       let booting = false;
+      let hostKeys = null;
 
       function release(entry) {
         const gm = window.EJS_emulator?.gameManager;
@@ -732,11 +733,29 @@
             view.video.muted = true; // the host hears the emulator directly
             view.video.srcObject = local;
             view.video.play().catch(() => {});
-            // Keep keyboard focus on the emulator for the host's own controls.
+            // The host plays on the emulator's keyboard controls, but EmulatorJS
+            // only hears keys sent to its own element, and the shared view sits
+            // on top of it. A click on the view would move focus to the page,
+            // so keep focus on the emulator and hand it any key that lands
+            // elsewhere.
             const game = document.getElementById("game");
             const focusGame = () => game?.focus({ preventScroll: true });
+            view.view.addEventListener("mousedown", (event) => {
+              if (event.target.closest("button")) return;
+              event.preventDefault(); // stops the browser moving focus
+              focusGame();
+            });
             view.view.addEventListener("pointerdown", focusGame);
             view.view.style.pointerEvents = "auto";
+            hostKeys = (event) => {
+              const emulator = window.EJS_emulator;
+              if (!emulator?.started || game.contains(event.target)) return;
+              if (event.target.closest?.("input, textarea, select, [contenteditable]")) return;
+              emulator.keyChange(event);
+              if (event.type === "keydown") focusGame();
+            };
+            document.addEventListener("keydown", hostKeys, true);
+            document.addEventListener("keyup", hostKeys, true);
             focusGame();
             statusBox.hidden = true;
             sync();
@@ -756,6 +775,11 @@
 
       function stop() {
         for (const id of [...peers.keys()]) close(id);
+        if (hostKeys) {
+          document.removeEventListener("keydown", hostKeys, true);
+          document.removeEventListener("keyup", hostKeys, true);
+          hostKeys = null;
+        }
         view?.destroy();
         view = null;
       }
