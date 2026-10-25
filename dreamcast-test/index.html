@@ -4,35 +4,184 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Token · Dreamcast test</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#2ed7e9}main{max-width:900px;margin:24px auto;padding:0 16px}form{display:flex;gap:8px;flex-wrap:wrap}input{flex:1;min-width:200px;background:#242036;color:white;border:1px solid #635277;padding:12px;border-radius:8px}button{background:#2ed7e9;color:#15102e;border:0;border-radius:8px;padding:12px;font-weight:700;cursor:pointer}button:disabled{opacity:.5}#status{white-space:pre-wrap;overflow-wrap:anywhere;color:#c7c0d6}#game{width:100%;height:min(70vh,650px);min-height:300px;background:#090713;border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}small{color:#bcb3ce}
+:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#2ed7e9}main{max-width:900px;margin:24px auto;padding:0 16px}form{display:flex;gap:8px;flex-wrap:wrap}input{flex:1;min-width:200px;background:#242036;color:white;border:1px solid #635277;padding:12px;border-radius:8px}button{background:#2ed7e9;color:#15102e;border:0;border-radius:8px;padding:12px;font-weight:700;cursor:pointer}button:disabled{opacity:.5}#status{white-space:pre-wrap;overflow-wrap:anywhere;color:#c7c0d6}#status.error{color:#ff9db0}#game{width:100%;height:min(70vh,650px);min-height:300px;background:#090713;border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}small{color:#bcb3ce}[hidden]{display:none!important}
+details{margin-top:14px;background:#1d1838;border:1px solid #413652;border-radius:10px;padding:10px 14px}summary{cursor:pointer;font-weight:700}table{border-collapse:collapse;margin-top:8px}td{padding:3px 14px 3px 0;color:#d8d2e6}kbd{background:#2b2545;border:1px solid #635277;border-radius:4px;padding:1px 6px;font:13px ui-monospace,monospace;color:#fff}
 </style>
 </head>
 <body><header><strong>TOKEN · Dreamcast test</strong><a href="/">Back to arcade</a></header>
-<main><form id="launch"><input id="rom" type="url" required placeholder="Paste the direct HTTPS URL to crazytaxi.zip" aria-label="Game file URL"><button id="start" disabled>Start Crazy Taxi</button></form>
+<main><form id="launch"><input id="rom" type="url" required placeholder="Paste the direct HTTPS URL to the game (ZIP, CHD or CDI)" aria-label="Game file URL"><button id="start" disabled>Start game</button></form>
 <p id="status" role="status">Preparing browser…</p><div id="game"></div>
-<p><small>Experimental player. Sign in on the arcade first. Use the emulator controls to configure a keyboard or controller. Save compatibility is not yet verified.</small></p>
+<details><summary>Keyboard controls</summary>
+<table>
+<tr><td>Steer / move</td><td><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> (analog stick and D-pad)</td></tr>
+<tr><td>Gas (R trigger)</td><td><kbd>E</kbd></td></tr>
+<tr><td>Brake (L trigger)</td><td><kbd>Q</kbd></td></tr>
+<tr><td>A · B · X · Y</td><td><kbd>X</kbd> · <kbd>Z</kbd> · <kbd>S</kbd> · <kbd>A</kbd></td></tr>
+<tr><td>Start</td><td><kbd>Enter</kbd></td></tr>
+</table>
+<p><small>A USB or Bluetooth controller works too: left stick steers, the triggers are gas and brake. Change any key in the player's Controls menu.</small></p>
+</details>
+<p><small>Experimental player. Sign in on the arcade first. The game downloads once, then loads from your browser's storage. <a href="?hud=1" id="hudLink">Show performance stats</a></small></p>
 <p><small><a href="https://github.com/nasomers/flycast-wasm/tree/v1.0">Flycast WASM source · GPLv2</a> · <a href="https://github.com/EmulatorJS/EmulatorJS/tree/v4.2.3">EmulatorJS source · GPLv3</a></small></p></main>
 <script>
 const statusText=document.getElementById('status'),startButton=document.getElementById('start'),romInput=document.getElementById('rom');
+const params=new URLSearchParams(location.search);
+const DEBUG=params.get('debug')==='1';
 const base=new URL('./',location.href).href;
-function show(text){statusText.textContent=text;}
+const GAME_NAME='Crazy Taxi (Dreamcast)',GAME_ID=900001;
+const BIOS=[['dc_boot.bin',2097152],['dc_flash.bin',131072]];
+
+// Speed settings for the browser build of Flycast. EmulatorJS only hands these to the
+// core at boot when a saved settings record exists, so prepareBootOptions() makes one.
+// Bump PRESET_VERSION after changing CORE_OPTIONS or CONTROLS so old saved values reset once.
+const PRESET_VERSION='1';
+const CORE_OPTIONS={
+ reicast_internal_resolution:'640x480',
+ reicast_threaded_rendering:'disabled',            // no threads in the WASM build
+ reicast_delay_frame_swapping:'disabled',          // "not recommended on slow platforms"
+ reicast_alpha_sorting:'per-strip (fast, least accurate)',
+ reicast_mipmapping:'disabled',                    // less texture conversion work per frame
+ reicast_anisotropic_filtering:'off'
+};
+// Dreamcast pad on the keyboard: arrows drive the analog stick (most Dreamcast games,
+// Crazy Taxi included, steer with the stick) and the D-pad; Q/E are the triggers.
+const CONTROLS={0:{
+ 0:{value:'x',value2:'BUTTON_2'},1:{value:'s',value2:'BUTTON_4'},2:{value:'v',value2:'SELECT'},3:{value:'enter',value2:'START'},
+ 4:{value:'up arrow',value2:'DPAD_UP'},5:{value:'down arrow',value2:'DPAD_DOWN'},6:{value:'left arrow',value2:'DPAD_LEFT'},7:{value:'right arrow',value2:'DPAD_RIGHT'},
+ 8:{value:'z',value2:'BUTTON_1'},9:{value:'a',value2:'BUTTON_3'},10:{value:'',value2:'LEFT_TOP_SHOULDER'},11:{value:'',value2:'RIGHT_TOP_SHOULDER'},
+ 12:{value:'q',value2:'LEFT_BOTTOM_SHOULDER'},13:{value:'e',value2:'RIGHT_BOTTOM_SHOULDER'},14:{value:'',value2:'LEFT_STICK'},15:{value:'',value2:'RIGHT_STICK'},
+ 16:{value:'right arrow',value2:'LEFT_STICK_X:+1'},17:{value:'left arrow',value2:'LEFT_STICK_X:-1'},18:{value:'down arrow',value2:'LEFT_STICK_Y:+1'},19:{value:'up arrow',value2:'LEFT_STICK_Y:-1'},
+ 20:{value:'l',value2:'RIGHT_STICK_X:+1'},21:{value:'j',value2:'RIGHT_STICK_X:-1'},22:{value:'k',value2:'RIGHT_STICK_Y:+1'},23:{value:'i',value2:'RIGHT_STICK_Y:-1'},
+ 24:{value:'1'},25:{value:'2'},26:{value:'3'},27:{},28:{},29:{}
+},1:{},2:{},3:{}};
+
+function show(text,error=false){statusText.textContent=text;statusText.classList.toggle('error',error);}
 function script(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.head.append(s);});}
-async function prepare(){
- if(window.top!==window.self)throw new Error('Open this test page in its own tab.');
- if(!window.isSecureContext||!navigator.serviceWorker)throw new Error('Open this page on HTTPS in a browser with service workers enabled.');
- await navigator.serviceWorker.register('./isolation-sw.js',{scope:'./'});
- await navigator.serviceWorker.ready;
- if(!window.crossOriginIsolated){
-  if(sessionStorage.getItem('token-dc-isolation-reload'))throw new Error('Browser isolation did not activate. Close this tab and reopen it, or try a normal Chrome/Firefox window.');
-  await Promise.race([new Promise(resolve=>{if(navigator.serviceWorker.controller)return resolve();navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true});}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Service worker activation timed out. Reload this page.')),10000))]);
-  sessionStorage.setItem('token-dc-isolation-reload','1');location.reload();return;
+function megabytes(bytes){return Math.round(bytes/1048576).toLocaleString()+' MB';}
+
+function prepareBootOptions(){
+ const key=`ejs-${GAME_ID}-flycast-${GAME_NAME}-settings`,presetKey='token-arcade-preset:'+key;
+ try{
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(key));}catch{}
+  if(!saved||typeof saved!=='object')saved={};
+  if(!saved.settings||typeof saved.settings!=='object')saved.settings={};
+  if(localStorage.getItem(presetKey)!==PRESET_VERSION){
+   for(const name of Object.keys(CORE_OPTIONS))delete saved.settings[name];
+   delete saved.controlSettings;   // let the new keyboard layout apply once
+   localStorage.setItem(presetKey,PRESET_VERSION);
+  }
+  localStorage.setItem(key,JSON.stringify(saved));
+ }catch{/* Storage blocked: the core runs with its own defaults. */}
+}
+
+// The core reports problems only through its log, which EmulatorJS prints in debug mode.
+// Debug mode is switched on just for the boot (after the download, so the game still
+// caches), the log is kept here, and the first real error is shown on the page.
+const coreLog=[],coreErrors=[];
+let capturing=false,bootFailed=false;
+const IGNORE=/texupscale|screen dimensions|GL_OES|none shader|Playlist|nvmem is DISABLED|invalid core option|BGRA8888/;
+const consoleLog=console.log.bind(console);
+console.log=(...args)=>{
+ if(!capturing)return consoleLog(...args);
+ const line=args.map(String).join(' ');
+ coreLog.push(line);if(coreLog.length>500)coreLog.shift();
+ if(!IGNORE.test(line)&&/\[ERROR\]|\bE\[|W\[GDROM\]|SET_MESSAGE|Cannot open|Invalid GDI|CUE parse/.test(line))coreErrors.push(line.replace(/^\[libretro \w+\]\s*\S+:\d+\s*/,'').trim());
+ if(/Failed to load content/.test(line))failBoot();
+ if(DEBUG)consoleLog(...args);
+};
+function failBoot(){
+ if(bootFailed)return;bootFailed=true;
+ const detail=coreErrors.filter(l=>!/Failed to load content/.test(l)).slice(-4).join('\n');
+ show('The emulator could not open this disc.'+(detail?'\n\n'+detail:'')+'\n\nAdd ?debug=1 to the page address to print the full emulator log in the browser console.',true);
+}
+function stopCapture(){capturing=false;if(window.EJS_emulator&&!DEBUG)window.EJS_emulator.debug=false;}
+
+function listFiles(fs,dir='/',out=[]){
+ for(const name of fs.readdir(dir)){
+  if(name==='.'||name==='..')continue;
+  if(dir==='/'&&['dev','proc','tmp','home','data','system','shader'].includes(name))continue;
+  const path=(dir==='/'?'':dir)+'/'+name,st=fs.stat(path);
+  if(fs.isDir(st.mode))listFiles(fs,path,out);else out.push({path,size:st.size});
  }
- sessionStorage.removeItem('token-dc-isolation-reload');
+ return out;
+}
+// This WASM build of Flycast crashes ("memory access out of bounds") when it opens a .cue file,
+// but loads .gdi files fine. A Redump CUE is turned into the same disc layout as a GDI, using the
+// track positions Flycast's own CUE reader would compute (core/imgread/cue.cpp).
+function cueToGdi(fs,cuePath,text){
+ const dir=cuePath.slice(0,cuePath.lastIndexOf('/')+1);
+ const sizes={'MODE1/2352':2352,'MODE2/2352':2352,'AUDIO':2352,'MODE1/2048':2048};
+ let currentFAD=150,fileStartFAD=0,file=null,fileSize=0,type=null,sectorSize=0,firstOfFile=false,gdRom=false;
+ const tracks=[];
+ for(const raw of text.split(/\r?\n/)){
+  const line=raw.trim();
+  let m;
+  if(/^REM\s+HIGH-DENSITY/i.test(line)){currentFAD=45150;gdRom=true;file=null;}
+  else if(/^REM\s+SINGLE-DENSITY/i.test(line)){file=null;}
+  else if((m=line.match(/^FILE\s+(?:"([^"]+)"|(\S+))/i))){
+   file=m[1]||m[2];
+   try{fileSize=fs.stat(dir+file).size;}catch{throw new Error(`${cuePath.slice(1)} lists "${file}", but that file is not next to it in the download.`);}
+   fileStartFAD=currentFAD;sectorSize=0;
+  }
+  else if((m=line.match(/^TRACK\s+(\d+)\s+(\S+)/i))){
+   if(!file)throw new Error('The CUE sheet has a TRACK line before any FILE line.');
+   type=m[2].toUpperCase();
+   firstOfFile=sectorSize===0;sectorSize=sizes[type];
+   if(!sectorSize)throw new Error(`The CUE sheet uses an unsupported track type (${m[2]}).`);
+   if(firstOfFile)currentFAD+=Math.floor(fileSize/sectorSize);
+  }
+  else if((m=line.match(/^INDEX\s+0*1\s+(\d+):(\d+):(\d+)/i))){
+   const indexFAD=Number(m[3])+75*(Number(m[2])+60*Number(m[1]));
+   tracks.push({lba:fileStartFAD+indexFAD-150,ctrl:type==='AUDIO'?0:4,size:sectorSize,file,offset:indexFAD*sectorSize});
+  }
+ }
+ if(!gdRom||tracks.length<3||tracks[2].lba!==45000)throw new Error('This CUE sheet is not a Dreamcast GD-ROM layout (it needs a HIGH-DENSITY area with track 3 at sector 45000). Use the game\'s GDI, CHD or CDI version instead.');
+ const gdi=[String(tracks.length),...tracks.map((t,i)=>`${i+1} ${t.lba} ${t.ctrl} ${t.size} "${t.file}" ${t.offset}`)].join('\n')+'\n';
+ const gdiPath=cuePath.replace(/\.cue$/i,'')+'.token.gdi';
+ fs.writeFile(gdiPath,gdi);
+ console.info('Converted',cuePath,'to',gdiPath+':\n'+gdi);
+ return gdiPath;
+}
+// Pick the disc to boot: a GDI (TOSEC style) or CUE (Redump style) sheet, otherwise a CHD or CDI.
+// Every track file the sheet names has to be in the download, or Flycast fails with a black screen.
+function pickDisc(fs){
+ const files=listFiles(fs);
+ const byExt=ext=>files.filter(f=>f.path.toLowerCase().endsWith('.'+ext));
+ const disc=byExt('gdi')[0]||byExt('cue')[0]||byExt('chd')[0]||byExt('cdi')[0];
+ if(!disc){
+  const names=files.map(f=>f.path.slice(1)).slice(0,8).join(', ');
+  throw new Error('No .gdi, .cue, .chd or .cdi file in the download. It contains: '+(names||'nothing')+'.\nThe ZIP needs the disc sheet (.gdi or .cue) next to its track files.');
+ }
+ const ext=disc.path.split('.').pop().toLowerCase();
+ if(ext==='gdi'||ext==='cue'){
+  const text=new TextDecoder().decode(fs.readFile(disc.path));
+  const dir=disc.path.slice(0,disc.path.lastIndexOf('/')+1);
+  const tracks=[];
+  if(ext==='cue'){for(const m of text.matchAll(/^\s*FILE\s+(?:"([^"]+)"|(\S+))/gim))tracks.push(m[1]||m[2]);}
+  else{for(const line of text.split(/\r?\n/).slice(1)){const m=line.match(/^\s*\d+\s+\d+\s+\d+\s+\d+\s+(?:"([^"]+)"|(\S+))/);if(m)tracks.push(m[1]||m[2]);}}
+  for(const track of tracks){
+   const found=files.find(f=>f.path===dir+track);
+   if(!found){
+    const sameName=files.find(f=>f.path.toLowerCase()===(dir+track).toLowerCase());
+    throw new Error(`${disc.path.slice(1)} lists "${track}", but that file is not next to it in the download.`+(sameName?`\nThe ZIP has "${sameName.path.slice(1)}". File names must match exactly, including capital letters.`:''));
+   }
+   if(found.size===0)throw new Error(`"${track}" in the download is empty. Re-create the ZIP from the original files.`);
+  }
+  if(ext==='cue')return cueToGdi(fs,disc.path,text).slice(1);
+ }
+ return disc.path.slice(1);
+}
+
+async function prepare(){
+ // An earlier version used a service worker for cross-origin isolation. This core doesn't
+ // need it (no threads, no SharedArrayBuffer), so remove the old worker if it's still installed.
+ navigator.serviceWorker?.getRegistrations?.().then(list=>list.forEach(r=>{if(r.scope.startsWith(base))r.unregister();})).catch(()=>{});
  const canvas=document.createElement('canvas');const gl=canvas.getContext('webgl2');
- if(!gl)throw new Error('This browser/device does not provide WebGL 2.');
+ if(!gl)throw new Error('This browser or device does not support WebGL 2, which the Dreamcast player needs.');
  gl.getExtension('WEBGL_lose_context')?.loseContext();
- romInput.value=new URLSearchParams(location.search).get('url')||'';
- show('Ready. Paste the direct URL to Crazy Taxi’s ZIP, containing its CUE and all three BIN tracks.');startButton.disabled=false;
+ romInput.value=params.get('url')||'';
+ show('Ready. Paste the direct URL to the game: a single .chd (starts fastest), or a ZIP with its .gdi or .cue and all track files.');startButton.disabled=false;
 }
 document.getElementById('launch').onsubmit=async event=>{
  event.preventDefault();startButton.disabled=true;
@@ -46,143 +195,76 @@ document.getElementById('launch').onsubmit=async event=>{
   show('Checking game URL…');
   const check=await fetch(url.href,{method:'HEAD',signal:AbortSignal.timeout(15000)});
   if(!check.ok)throw new Error('Game URL returned HTTP '+check.status+'.');
-  if((check.headers.get('content-type')||'').includes('text/html'))throw new Error('That URL returns a webpage. Use the direct ZIP file URL.');
+  if((check.headers.get('content-type')||'').includes('text/html'))throw new Error('That URL returns a webpage. Use the direct file URL.');
+  const size=Number(check.headers.get('content-length'))||0;
+  prepareBootOptions();
   window.EJS_player='#game';window.EJS_core='flycast';window.EJS_gameUrl=url.href;
-  window.EJS_gameName='Crazy Taxi (Dreamcast)';window.EJS_gameID=900001;
+  window.EJS_gameName=GAME_NAME;window.EJS_gameID=GAME_ID;
   window.EJS_pathtodata=base+'data/';window.EJS_color='#2ed7e9';window.EJS_backgroundColor='#15102e';
-  window.EJS_startOnLoaded=false;window.EJS_threads=false;window.EJS_disableCue=true;
-  window.EJS_defaultOptions={'webgl2Enabled':'enabled','ejs_threads':'disabled','save-state-location':'browser','save-state-slot':1};
-  window.EJS_externalFiles={
-   '/system/dc/dc_boot.bin':location.origin+'/emulators/dreamcast/bios/dc_boot.bin',
-   '/system/dc/dc_flash.bin':location.origin+'/emulators/dreamcast/bios/dc_flash.bin'
-  };
+  window.EJS_startOnLoaded=true;window.EJS_threads=false;window.EJS_disableCue=true;
+  window.EJS_defaultOptions={'webgl2Enabled':'enabled','ejs_threads':'disabled','save-state-location':'browser','save-state-slot':1,...CORE_OPTIONS};
+  window.EJS_defaultControls=CONTROLS;
   window.EJS_paths={'flycast.json':base+'flycast.json','flycast-wasm.data':base+'flycast-wasm.data','flycast-legacy-wasm.data':base+'flycast-wasm.data'};
-  window.EJS_ready = () => {
-    const emulator = window.EJS_emulator;
-    const originalWarn = console.warn;
-    
-    console.warn = function (...args) {
-      originalWarn.apply(console, args);
-    
-      if (String(args[0]).includes("Failed to start game")) {
-        const error = args[1];
-        const detail = error?.stack || error?.message ||
-          String(error || "No error details provided");
-    
-        show("Dreamcast startup failed:\n" + detail);
-      }
+  window.EJS_ready=()=>{
+   const emulator=window.EJS_emulator;
+   const originalWarn=console.warn;
+   console.warn=function(...args){
+    originalWarn.apply(console,args);
+    if(String(args[0]).includes('Failed to start game')){
+     const error=args[1];
+     show('Dreamcast startup failed:\n'+(error?.stack||error?.message||String(error||'No error details provided')),true);
+    }
+   };
+   emulator.debug=DEBUG;
+   const originalDownloadRom=emulator.downloadRom.bind(emulator);
+   emulator.downloadRom=async function(...args){
+    const fs=this.gameManager.FS;
+    const originalMkdir=fs.mkdir;
+    // EmulatorJS creates each folder of a ZIP twice; make the second one a no-op.
+    fs.mkdir=function(path,mode){
+     const existing=fs.analyzePath(path);
+     if(existing.exists&&fs.isDir(existing.object.mode))return existing.object;
+     return originalMkdir.call(fs,path,mode);
     };
-    emulator.debug = false;
-  
-    // Load BIOS manually so we can verify each file.
-    emulator.config.externalFiles = {};
-  
-    const originalDownloadRom = emulator.downloadRom.bind(emulator);
-  
-    emulator.downloadRom = async function (...args) {
-      const fs = this.gameManager.FS;
-      const originalMkdir = fs.mkdir;
-  
-      // Keep the ZIP folder extraction fix.
-      fs.mkdir = function (path, mode) {
-        const existing = fs.analyzePath(path);
-  
-        if (existing.exists && fs.isDir(existing.object.mode)) {
-          return existing.object;
-        }
-  
-        return originalMkdir.call(fs, path, mode);
-      };
-  
-      try {
-        show("Loading and verifying Dreamcast BIOS…");
-  
-        fs.mkdir("/system");
-        fs.mkdir("/system/dc");
-  
-        for (const [name, expectedSize] of [
-          ["dc_boot.bin", 2097152],
-          ["dc_flash.bin", 131072]
-        ]) {
-          const response = await fetch(
-            "/emulators/dreamcast/bios/" + name,
-            {
-              cache: "no-store",
-              signal: AbortSignal.timeout(30000)
-            }
-          );
-  
-          if (!response.ok) {
-            throw new Error(
-              name + " returned HTTP " + response.status
-            );
-          }
-  
-          const bytes = new Uint8Array(
-            await response.arrayBuffer()
-          );
-  
-          if (bytes.byteLength !== expectedSize) {
-            throw new Error(
-              name + " has an unexpected file size."
-            );
-          }
-  
-          const path = "/system/dc/" + name;
-          fs.writeFile(path, bytes);
-  
-          if (fs.stat(path).size !== expectedSize) {
-            throw new Error(
-              "Could not verify BIOS write: " + name
-            );
-          }
-  
-          console.info(
-            "BIOS ready:", path, bytes.byteLength, "bytes"
-          );
-        }
-          
-        show("BIOS ready. Loading and extracting Crazy Taxi…");
-        await originalDownloadRom(...args);
-        
-        const folder = "/crazytaxi/";
-        const title = "Crazy Taxi (USA) (En,Ja)";
-        
-        // Reuse the existing BIN files with a GDI disc descriptor.
-        const gdi = [
-          "3",
-          `1 0 4 2352 "${title} (Track 1).bin" 0`,
-          `2 600 0 2352 "${title} (Track 2).bin" 352800`,
-          `3 45000 4 2352 "${title} (Track 3).bin" 0`
-        ].join("\n") + "\n";
-        
-        fs.writeFile(folder + "crazytaxi.gdi", gdi);
-        
-        // Tell EmulatorJS to launch the GDI instead of the CUE.
-        this.fileName = "crazytaxi/crazytaxi.gdi";
-        
-        show("Disc prepared. Starting Crazy Taxi…");
-        return;
-  
-        return await originalDownloadRom(...args);
-      } catch (error) {
-        show("Could not prepare game: " + error.message);
-        throw error;
-      } finally {
-        fs.mkdir = originalMkdir;
-      }
-    };
-  
-    show(
-      "Click Start Game inside the player. BIOS and folder fixes loaded."
-    );
+    try{
+     // The BIOS goes in the core's system folder (/system, set by core.json). Without it
+     // the core aborts with "RuntimeError: unreachable".
+     show('Loading Dreamcast BIOS…');
+     fs.mkdir('/system');fs.mkdir('/system/dc');
+     for(const [name,expectedSize] of BIOS){
+      const response=await fetch('/emulators/dreamcast/bios/'+name,{cache:'no-store',signal:AbortSignal.timeout(30000)});
+      if(!response.ok)throw new Error('BIOS file '+name+' returned HTTP '+response.status+'.');
+      const bytes=new Uint8Array(await response.arrayBuffer());
+      if(bytes.byteLength!==expectedSize)throw new Error('BIOS file '+name+' has the wrong size ('+bytes.byteLength+' bytes, expected '+expectedSize+').');
+      fs.writeFile('/system/dc/'+name,bytes);
+     }
+     show('Downloading the game'+(size?' ('+megabytes(size)+')':'')+'. The first load takes a while; after that it loads from your browser.');
+     await originalDownloadRom(...args);
+     this.fileName=pickDisc(fs);
+     show('Starting '+this.fileName.split('/').pop()+'…');
+     // Capture the core's boot log (see console.log above).
+     capturing=true;this.debug=true;
+    }catch(error){
+     show('Could not prepare the game: '+(error?.message||error)+'\n\nFix the file, then reload this page to try again.',true);
+     throw error;
+    }finally{
+     fs.mkdir=originalMkdir;
+    }
+   };
   };
-  window.EJS_onGameStart=()=>show('Game started. Use the player menu to configure controls.');
+  window.EJS_onGameStart=()=>{
+   setTimeout(()=>{if(!bootFailed)show('Game running. Click the game, then play with the keys below or a controller.');},1500);
+   setTimeout(stopCapture,10000);
+  };
   show('Loading Dreamcast player…');await script(base+'data/loader.js');
   document.getElementById('launch').hidden=true;
- }catch(error){console.error(error);show(error.message+'\nIf the file is on R2, check public access and CORS settings.');startButton.disabled=false;}
+ }catch(error){console.error(error);show(error.message+'\nIf the file is on R2, check public access and CORS settings.',true);startButton.disabled=false;}
 };
-window.addEventListener('error',event=>{if(event.message)show('Player error: '+event.message);});
-window.addEventListener('unhandledrejection',event=>show('Player error: '+(event.reason?.message||String(event.reason))));
-prepare().catch(error=>show(error.message));
+// Keep ?url= when turning the stats overlay on.
+document.getElementById('hudLink').href='?hud=1'+(params.get('url')?'&url='+encodeURIComponent(params.get('url')):'')+(DEBUG?'&debug=1':'');
+// Don't replace an error message that is already on screen with a less specific one.
+const showing=()=>statusText.classList.contains('error');
+window.addEventListener('error',event=>{if(event.message&&!showing())show('Player error: '+event.message,true);});
+window.addEventListener('unhandledrejection',event=>{if(!showing())show('Player error: '+(event.reason?.message||String(event.reason)),true);});
+prepare().catch(error=>show(error.message,true));
 </script></body></html>
