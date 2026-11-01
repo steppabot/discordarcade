@@ -350,6 +350,22 @@
       );
     }
 
+    // GoldenEye 007 plays the native PC port (goldeneye-pc/) instead of the
+    // N64 emulator wherever the browser has WebGL 2 (current Chrome, Edge,
+    // Firefox and Safari, phones included).
+    function pcPortAvailable(core, url) {
+      if (params.get("pc") === "0") return false;
+      if (!["n64", "mupen64plus_next", "parallel-n64"].includes(core)) return false;
+      if (new URL(url).pathname !== "/games/n64/goldeneye007.z64") return false;
+      if (typeof BigInt64Array === "undefined") return false;
+
+      try {
+        return Boolean(document.createElement("canvas").getContext("webgl2"));
+      } catch {
+        return false;
+      }
+    }
+
     async function start() {
       const type = params.get("type");
       const url = fileURL(params.get("url"));
@@ -384,6 +400,20 @@
             bootEmulator: ({ onStart }) =>
               bootRetro(core, url, title, { host: true, onStart })
           });
+          return;
+        }
+
+        // GoldenEye 007: the native PC port, solo only (groups still stream
+        // the N64 version). "pc=0" forces the N64 version (the PC page links
+        // back here with it).
+        if (pcPortAvailable(core, url)) {
+          const pc = new URL("goldeneye-pc/", location.href);
+          const n64 = new URL(location.href);
+
+          n64.searchParams.set("pc", "0");
+          pc.searchParams.set("embed", "1");
+          pc.searchParams.set("n64", n64.href);
+          location.replace(pc.href);
           return;
         }
 
