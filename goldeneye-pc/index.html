@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Token · GoldenEye PC</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}
+header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#c9b8ff}
+main{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;flex-direction:column}
+main>#panel{order:-1}
+button{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:0;background:#7c5cff;color:#fff;cursor:pointer}button:disabled{opacity:.5;cursor:default}
+button.ghost{background:#2a2350;border:1px solid #413652}
+#status{white-space:pre-wrap;min-height:1.4em}#status.err{color:#ff8f8f}
+#stage{display:none;background:#000;border-radius:8px;overflow:hidden;position:relative}
+#stage.on{display:block}
+#canvas{display:block;width:100%;aspect-ratio:4/3;max-height:calc(100vh - 160px);object-fit:contain;background:#000;outline:none}
+#stage:fullscreen{display:flex;align-items:center;justify-content:center}
+#stage:fullscreen #canvas{width:100vw;height:min(100vh,75vw);max-height:none;aspect-ratio:auto}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+progress{width:260px;height:10px}
+details{margin-top:14px;background:#1d1838;border:1px solid #413652;border-radius:10px;padding:10px 14px}summary{cursor:pointer;font-weight:700}
+table{border-collapse:collapse;margin-top:8px}td{padding:3px 14px 3px 0;color:#d9d2f0}kbd{background:#2a2350;border:1px solid #574a7a;border-radius:4px;padding:1px 6px;font-size:.9em}
+small{color:#b8afd6}
+/* Inside the arcade's game frame: the game fills the frame, controls sit in an overlay. */
+html.embed,html.embed body{height:100%;overflow:hidden;background:#000}
+html.embed header,html.embed .foot,html.embed #full{display:none}
+html.embed main{max-width:none;height:100%;padding:0;position:relative;display:block}
+html.embed #stage{display:flex;align-items:center;position:absolute;inset:0;border-radius:0}
+/* The game draws to whatever shape the canvas has. Wider than 4:3 shows more
+   of the level; narrower (a phone held upright) would squash it, so it is
+   letterboxed at 4:3 instead. */
+html.embed #canvas{width:100%;height:min(100%,75vw);max-height:none;aspect-ratio:auto}
+html.embed #panel{position:absolute;inset:0;z-index:2;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:12px;background:rgba(21,16,46,.94);text-align:center;font-size:14px}
+html.embed #panel .bar{justify-content:center;margin:4px 0}
+html.embed #panel #status{margin:6px 0}
+html.embed #panel details{text-align:left;max-width:520px;margin-top:6px;font-size:13px}
+html.embed #panel td{padding:1px 10px 1px 0}
+html.embed.running #panel{display:none}
+html.embed.running.err #panel{display:flex}
+/* Touch controls: a quiet N64 pad (monochrome outlines, italic labels). Sized
+   from the screen's short side, capped so tablets get phone-sized buttons. */
+#stage{--u:min(1vmin,4.4px)}
+#touch{position:absolute;inset:0;z-index:1;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#touch[hidden]{display:none}
+#touch .zone{position:absolute;left:0;top:0;bottom:0;width:48%;pointer-events:auto;touch-action:none}
+/* The stick rests bottom-left and jumps to wherever the thumb lands. */
+#stick{position:absolute;left:calc(var(--u)*22);top:calc(100% - var(--u)*28);width:calc(var(--u)*32);height:calc(var(--u)*32);margin:calc(var(--u)*-16) 0 0 calc(var(--u)*-16);border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(0,0,0,.3);opacity:.75}
+#stick.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:calc(var(--u)*13);height:calc(var(--u)*13);margin:calc(var(--u)*-6.5) 0 0 calc(var(--u)*-6.5);border-radius:50%;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.5)}
+#touch .tb,#fs{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;padding:0;margin:0;border-radius:calc(var(--u)*2.6);border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:rgba(255,255,255,.9);font:italic 800 max(11px,calc(var(--u)*4.4))/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
+#touch .tb.on,#fs:active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
+#touch .pill{border-radius:999px}
+#touch .tb svg{width:30%;height:30%;fill:currentColor}
+/* Right side, one column from the bottom: Fire, Aim, B + A, then the C arrows (look and strafe). */
+#tFire{right:calc(var(--u)*3);bottom:calc(var(--u)*4);width:calc(var(--u)*38);height:calc(var(--u)*15)}
+#tAim{right:calc(var(--u)*3);bottom:calc(var(--u)*21);width:calc(var(--u)*38);height:calc(var(--u)*11)}
+#tA{right:calc(var(--u)*3);bottom:calc(var(--u)*34);width:calc(var(--u)*18.5);height:calc(var(--u)*11)}
+#tB{right:calc(var(--u)*22.5);bottom:calc(var(--u)*34);width:calc(var(--u)*18.5);height:calc(var(--u)*11)}
+#touch .sq{width:calc(var(--u)*12);height:calc(var(--u)*12)}
+#tCu{right:calc(var(--u)*16);bottom:calc(var(--u)*74)}
+#tCl{right:calc(var(--u)*29);bottom:calc(var(--u)*61)}
+#tCr{right:calc(var(--u)*3);bottom:calc(var(--u)*61)}
+#tCd{right:calc(var(--u)*16);bottom:calc(var(--u)*48)}
+#tCd svg{transform:rotate(180deg)}#tCl svg{transform:rotate(-90deg)}#tCr svg{transform:rotate(90deg)}
+/* Top-left: fullscreen, then Start. */
+#fs{left:calc(var(--u)*3);top:calc(var(--u)*3);z-index:3;width:max(34px,calc(var(--u)*10));height:max(34px,calc(var(--u)*10));display:none}
+#fs svg{width:55%;height:55%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#tStart{left:calc(var(--u)*5 + max(34px,calc(var(--u)*10)));top:calc(var(--u)*3);width:calc(var(--u)*19);height:max(34px,calc(var(--u)*10))}
+html.touch.running #fs,html.full #fs{display:flex}
+#fs .out,html.full #fs .in{display:none}html.full #fs .out{display:block}
+#hint{margin-top:6px}
+#turn{display:none;position:absolute;left:50%;top:calc(75vw + var(--u)*5);transform:translateX(-50%);z-index:3;pointer-events:none;padding:6px 12px;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:rgba(255,255,255,.9);font:italic 700 14px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap}
+@media (orientation:portrait){html.touch.full.running #turn{display:block}}
+/* Phones and tablets: the classic 4:3 picture, with the pad beside it when
+   sideways and below it when upright, so the buttons stay off the game. */
+html.embed #stage,html.fill #stage{justify-content:center}
+html.touch.embed #canvas,html.touch.fill #canvas{width:min(100%,133.33vh);height:min(100%,75vw)}
+html.touch #stage:fullscreen #canvas{width:min(100vw,133.33vh);height:min(100vh,75vw)}
+@media (orientation:portrait){html.touch.embed #stage,html.touch.fill #stage,html.touch #stage:fullscreen{align-items:flex-start}}
+/* No element fullscreen (iPhone Safari): the game fills the page instead. */
+html.fill,html.fill body{height:100%;overflow:hidden}
+html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:10;border-radius:0}
+html.fill #canvas{width:100%;height:min(100%,75vw);max-height:none;aspect-ratio:auto}
+</style>
+</head>
+<body><header><strong>TOKEN · GoldenEye PC (beta)</strong><a href="/">Back to arcade</a></header>
+<main>
+<div id="stage"><canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+<div id="touch" hidden>
+ <div class="zone" id="zone"><div id="stick"><div id="knob"></div></div></div>
+ <button class="tb pill" id="tStart" data-b="4096">Start</button>
+ <button class="tb sq" id="tCu" data-b="8" aria-label="C up"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.4 8.6 7.6H1.4z"/></svg></button>
+ <button class="tb sq" id="tCl" data-b="2" aria-label="C left"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.4 8.6 7.6H1.4z"/></svg></button>
+ <button class="tb sq" id="tCr" data-b="1" aria-label="C right"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.4 8.6 7.6H1.4z"/></svg></button>
+ <button class="tb sq" id="tCd" data-b="4" aria-label="C down"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.4 8.6 7.6H1.4z"/></svg></button>
+ <button class="tb pill" id="tB" data-b="16384">B</button>
+ <button class="tb pill" id="tA" data-b="32768">A</button>
+ <button class="tb pill" id="tAim" data-b="16">Aim</button>
+ <button class="tb pill" id="tFire" data-b="8192">Fire</button>
+</div>
+<button id="fs" aria-label="Fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="in" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="out" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button>
+<div id="turn">Turn your phone sideways</div>
+</div>
+<div id="panel">
+<div class="bar"><button id="start" disabled>Start GoldenEye</button><button id="full" class="ghost" disabled>Fullscreen</button><progress id="prog" max="1" value="0" hidden></progress></div>
+<p id="status" role="status">Preparing browser…</p>
+<p id="n64wrap" hidden><button id="n64" class="ghost">Play the N64 version instead</button></p>
+<details open><summary>Controls</summary>
+<table>
+<tr><td>Move · strafe</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (turn with <kbd>←</kbd> <kbd>→</kbd>)</td></tr>
+<tr><td>Look / aim</td><td>Mouse (click the game first to capture it, <kbd>Esc</kbd> releases it)</td></tr>
+<tr><td>Fire</td><td>Left mouse button</td></tr>
+<tr><td>Aim mode</td><td>Right mouse button or <kbd>Shift</kbd></td></tr>
+<tr><td>Next weapon / menu accept (A)</td><td><kbd>Q</kbd></td></tr>
+<tr><td>Use, open doors / menu back (B)</td><td><kbd>E</kbd></td></tr>
+<tr><td>Reload · crouch</td><td><kbd>R</kbd> · <kbd>C</kbd></td></tr>
+<tr><td>Start / pause watch</td><td><kbd>Enter</kbd></td></tr>
+</table>
+<p><small>An Xbox or PlayStation controller works too. On a phone or tablet, an N64 pad appears on screen: the left side is the stick (move and turn), ▲▼◀▶ are the C buttons (look and strafe). Settings live in the game's PC Options menu on the file-select screen; they and your save files stay in this browser.</small></p>
+</details>
+<p id="hint"><small></small></p>
+</div>
+<p class="foot"><small>Beta: the GoldenEye 007 PC port compiled to WebAssembly, not an emulator. Works in current Chrome, Edge, Firefox and Safari, on computers, phones and tablets. Sign in on the arcade first.</small></p>
+<p class="foot"><small id="sysinfo"></small></p>
+<p class="foot"><small><a href="https://github.com/jkdansereau/goldeneye-pc-port">GoldenEye 007 PC port source</a></small></p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const statusEl=$('status'),startButton=$('start'),fullButton=$('full'),prog=$('prog'),stage=$('stage'),canvas=$('canvas');
+const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const EMBED=window.top!==window.self;
+const TOUCH=matchMedia('(pointer: coarse)').matches;
+if(EMBED){document.documentElement.classList.add('embed');document.querySelector('details').open=false;}
+if(TOUCH)document.documentElement.classList.add('touch');
+const ROM_URL='/games/n64/goldeneye007.z64', ROM_SIZE=12582912;
+const ROM_NAME='ge007.ntsc-final.z64';
+const DATA=['pcmodels-ntsc-final/pcmodels.bin','pcmodels-ntsc-final/manifest.csv','pccg-ntsc-final/pccg.bin','pccg-ntsc-final/manifest.csv'];
+const SAVE_FILES={'ge007.eep':'token-gepc-eep','ge007.ini':'token-gepc-ini'};   // file in /data -> localStorage key
+const CACHE='token-gepc-v1';
+const BUILD='2';
+// Opened from the arcade's GoldenEye card: the N64 player URL to fall back to.
+const N64_URL=(()=>{try{const u=new URL(new URLSearchParams(location.search).get('n64')||'',location.href);
+ return u.origin===location.origin&&u.pathname.endsWith('/arcade-player.html')?u.href:null;}catch{return null;}})();
+if(N64_URL)$('n64').onclick=()=>location.replace(N64_URL);
+function show(t,err){statusEl.textContent=t;statusEl.classList.toggle('err',!!err);document.documentElement.classList.toggle('err',!!err);
+ if(N64_URL)$('n64wrap').hidden=!err;}
+
+async function prepare(){
+ // The first beta ran threads behind an isolation service worker; this build needs none. Remove it.
+ navigator.serviceWorker?.getRegistrations?.().then(rs=>rs.forEach(r=>{if(new URL(r.scope).pathname.startsWith(new URL('./',location.href).pathname))r.unregister();})).catch(()=>{});
+ if(typeof BigInt64Array==='undefined'||typeof WebAssembly!=='object')throw new Error('This browser is too old for GoldenEye. Update it, or play the N64 version.');
+ const gl=document.createElement('canvas').getContext('webgl2');
+ if(!gl)throw new Error('This browser or device does not support WebGL 2, which GoldenEye needs.');
+ const dbg=gl.getExtension('WEBGL_debug_renderer_info');
+ const renderer=String(dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER));
+ const ua=navigator.userAgent;
+ const browser=(ua.match(/(Edg|OPR|Firefox|Chrome|Version)\/(\d+)/)||[]).slice(1).join(' ').replace(/^Edg/,'Edge').replace(/^OPR/,'Opera').replace(/^Version/,'Safari')||'unknown browser';
+ $('sysinfo').textContent='Running on: '+browser+' · '+renderer+' · '+(navigator.hardwareConcurrency||'?')+' CPU threads';
+ if(/swiftshader|basic render|llvmpipe|software/i.test(renderer))show('Warning: hardware graphics acceleration is off in this browser, so the game will be slow. Turn it on in the browser settings (System › Use graphics acceleration).',true);
+ if(!LOCAL){
+  show('Checking premium access…');
+  const access=await fetch('https://api.discordarcade.com/api/arcade/access',{credentials:'include',cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!access.ok)throw new Error('Access check failed ('+access.status+').');
+  if((await access.json()).allowed!==true)throw new Error('Sign in on the main arcade with premium access, then return here.');
+ }
+ if(TOUCH)$('hint').firstChild.textContent='Turn your phone sideways. The on-screen pad appears when the game starts.';
+ return true;
+}
+
+// Download once, then load from Cache Storage on later visits.
+async function getFile(url,label,expect){
+ let cache=null;try{cache=await caches.open(CACHE);}catch{}
+ const hit=cache&&await cache.match(url);
+ if(hit)return new Uint8Array(await hit.arrayBuffer());
+ const res=await fetch(url);
+ if(!res.ok)throw new Error(label+' download failed ('+res.status+').');
+ const total=Number(res.headers.get('content-length'))||expect||0;
+ const reader=res.body.getReader();const parts=[];let got=0;
+ for(;;){const {done,value}=await reader.read();if(done)break;parts.push(value);got+=value.length;
+  if(total){prog.hidden=false;prog.value=got/total;show('Downloading '+label+'… '+Math.round(got/total*100)+'%');}}
+ const buf=new Uint8Array(got);let o=0;for(const p of parts){buf.set(p,o);o+=p.length;}
+ if(cache)cache.put(url,new Response(buf,{headers:{'content-type':'application/octet-stream'}})).catch(()=>{});
+ return buf;
+}
+
+function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+function unb64(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+const saved={};
+function persistSaves(){
+ if(typeof FS==='undefined')return;
+ for(const [file,key] of Object.entries(SAVE_FILES)){
+  try{const data=b64(FS.readFile('/data/'+file));if(saved[file]!==data){localStorage.setItem(key,data);saved[file]=data;}}catch{}
+ }
+}
+
+// On-screen N64 pad (phones and tablets): drives controller 1 through webSetPad().
+function startTouch(){
+ const pad={buttons:0,x:0,y:0};
+ const send=()=>{try{Module._webSetPad(0,pad.buttons,pad.x,pad.y);}catch{}};
+ const zone=$('zone'),stick=$('stick'),knob=$('knob');
+ let sid=null,ox=0,oy=0,R=55;
+ zone.addEventListener('pointerdown',e=>{if(sid!==null)return;sid=e.pointerId;zone.setPointerCapture(sid);
+  const r=zone.getBoundingClientRect();ox=e.clientX;oy=e.clientY;R=Math.max(30,stick.offsetWidth*.42);   // full tilt near the ring's edge
+  stick.style.left=(ox-r.left)+'px';stick.style.top=(oy-r.top)+'px';stick.classList.add('on');knob.style.transform='';e.preventDefault();});
+ zone.addEventListener('pointermove',e=>{if(e.pointerId!==sid)return;
+  let dx=e.clientX-ox,dy=e.clientY-oy;const d=Math.hypot(dx,dy);if(d>R){dx*=R/d;dy*=R/d;}
+  knob.style.transform=`translate(${dx}px,${dy}px)`;
+  pad.x=Math.round(dx/R*80);pad.y=Math.round(-dy/R*80);send();});
+ const end=e=>{if(e.pointerId!==sid)return;sid=null;stick.style.left=stick.style.top='';stick.classList.remove('on');knob.style.transform='';pad.x=pad.y=0;send();};
+ zone.addEventListener('pointerup',end);zone.addEventListener('pointercancel',end);
+ for(const b of document.querySelectorAll('#touch .tb')){
+  const bit=Number(b.dataset.b);
+  const on=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);b.classList.add('on');pad.buttons|=bit;send();};
+  const off=()=>{b.classList.remove('on');pad.buttons&=~bit;send();};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+ }
+ $('touch').hidden=false;
+}
+
+async function start(){
+ startButton.disabled=true;
+ try{
+  const rom=await getFile(ROM_URL,'GoldenEye',ROM_SIZE);
+  if(rom.length!==ROM_SIZE)throw new Error('Unexpected GoldenEye ROM size ('+rom.length+' bytes).');
+  const files={[ROM_NAME]:rom};
+  for(const f of DATA)files[f]=await getFile('./data/'+f,'game data');
+  const ini=await getFile('./data/ge007.ini','settings');
+  prog.hidden=true;show('Starting…');
+  stage.classList.add('on');fullButton.disabled=false;
+  window.Module={
+   canvas,
+   locateFile:p=>p+'?v='+BUILD,   // new build, new URL: never mix a cached .js with a different .wasm
+   print:t=>console.log(t),printErr:t=>console.warn(t),
+   preRun:[()=>{
+    FS.mkdir('/data');FS.mkdir('/data/pcmodels-ntsc-final');FS.mkdir('/data/pccg-ntsc-final');
+    for(const [name,data] of Object.entries(files))FS.writeFile('/data/'+name,data);
+    for(const [file,key] of Object.entries(SAVE_FILES)){
+     let v=null;try{v=localStorage.getItem(key);}catch{}
+     if(v){FS.writeFile('/data/'+file,unb64(v));saved[file]=v;}
+     else if(file==='ge007.ini')FS.writeFile('/data/ge007.ini',ini);
+    }
+   }],
+   onRuntimeInitialized:()=>{
+    show(TOUCH?'Running.':'Running. Click the game to capture the mouse; Esc releases it.');
+    document.documentElement.classList.add('running');canvas.focus();
+    if(TOUCH)startTouch();
+   },
+   onAbort:w=>show('The game stopped: '+w+'\nReload the page to restart.',true),
+  };
+  setInterval(persistSaves,4000);
+  addEventListener('pagehide',persistSaves);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)persistSaves();});
+  const s=document.createElement('script');s.src='ge007.js?v='+BUILD;
+  s.onerror=()=>show('Could not load the game code.',true);
+  document.body.appendChild(s);
+ }catch(e){console.error(e);show(e.message,true);startButton.disabled=false;}
+}
+
+// Fullscreen: the real thing where the browser allows it (computers, Android,
+// iPad). iPhone Safari only lets videos go fullscreen, so there the game fills
+// the page instead; inside the arcade, the arcade page does that for its frame.
+const fsTarget=EMBED?document.documentElement:stage;
+const fsElement=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+let filled=false;
+function syncFull(){
+ const on=!!fsElement()||filled;
+ document.documentElement.classList.toggle('full',on);
+ const label=on?'Exit fullscreen':'Fullscreen';$('fs').title=label;$('fs').setAttribute('aria-label',label);
+}
+function setFilled(on){
+ if(EMBED){parent.postMessage({type:'token-fullscreen',on},location.origin);return;}   // the arcade replies with its state
+ filled=on;document.documentElement.classList.toggle('fill',on);syncFull();
+}
+addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==parent||e.data?.type!=='token-fullscreen')return;
+ filled=!!e.data.on;syncFull();
+});
+document.addEventListener('fullscreenchange',syncFull);document.addEventListener('webkitfullscreenchange',syncFull);
+async function toggleFull(){
+ if(fsElement()){try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch{}return;}
+ if(filled){setFilled(false);return;}
+ const req=fsTarget.requestFullscreen||fsTarget.webkitRequestFullscreen;
+ if(req&&(document.fullscreenEnabled||document.webkitFullscreenEnabled)){
+  try{
+   await req.call(fsTarget,{navigationUI:'hide'});
+   if(TOUCH)screen.orientation?.lock?.('landscape')?.catch(()=>{});   // Android: stay sideways while fullscreen
+   canvas.focus();return;
+  }catch{}
+ }
+ setFilled(true);
+}
+$('fs').addEventListener('pointerdown',e=>e.preventDefault());   // keep the tap from reaching the pad or the canvas
+$('fs').onclick=toggleFull;
+fullButton.onclick=toggleFull;
+startButton.onclick=start;
+addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))show('The game crashed: '+e.message+'\nReload the page to restart. A screenshot of this message helps.',true);});
+prepare().then(ok=>{if(ok){startButton.disabled=false;if(!statusEl.classList.contains('err'))show('Ready. Press Start (the 12 MB game downloads once).');}})
+ .catch(e=>{console.error(e);show(e.message,true);});
+</script>
+</body></html>
