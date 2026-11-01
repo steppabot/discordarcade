@@ -1376,12 +1376,28 @@ $('messageInput').addEventListener('focus', () => game.pause());
 
 // iPhones (and some in-app browsers, like Discord's) only allow videos to
 // go fullscreen. There, the button stretches the game over the whole page.
-function setFillScreen(on) {
+// `bare` hides the bar under the game too, for games that show their own exit
+// button (GoldenEye's on-screen pad).
+let fillScrollY = 0;
+function setFillScreen(on, bare = false) {
+  const was = $('gameWindow').classList.contains('fill-screen');
+  if (on && !was) fillScrollY = window.scrollY;
   $('gameWindow').classList.toggle('fill-screen', on);
+  $('gameWindow').classList.toggle('fill-screen-bare', on && bare);
   document.documentElement.classList.toggle('fill-screen-lock', on);
   $('fullscreen').setAttribute('aria-pressed', String(on));
   if (on) window.scrollTo(0, 0);
+  else if (was) window.scrollTo(0, fillScrollY);   // back to the game, not the top of the page
+  stage.querySelector('iframe')?.contentWindow?.postMessage({ type: 'token-fullscreen', on }, location.origin);
 }
+
+// The game in the frame can ask for this itself (GoldenEye's ⛶ button on phones).
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.data?.type !== 'token-fullscreen') return;
+  const frame = stage.querySelector('iframe');
+  if (!frame || event.source !== frame.contentWindow) return;
+  setFillScreen(Boolean(event.data.on), true);
+});
 
 $('fullscreen').onclick = async () => {
   const win = $('gameWindow');
@@ -4810,7 +4826,8 @@ function explosion() {
     background: #080b08 !important;
   }
 
-  #gameWindow.fill-screen .game-topline {
+  #gameWindow.fill-screen .game-topline,
+  #gameWindow.fill-screen-bare .game-bottom {
     display: none !important;
   }
 
@@ -4836,6 +4853,14 @@ function explosion() {
      so lift that whole layer above the rest of the page. */
   html.fill-screen-lock .play-area {
     z-index: 1000 !important;
+  }
+
+  /* Phones: the stage's 16:9 shape plus its 240px minimum height made it
+     427px wide, wider than the phone, which cut off the right of every game. */
+  @media (max-width: 700px) {
+    .stage {
+      width: 100%;
+    }
   }
 </style>
 </body>
