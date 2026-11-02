@@ -10729,8 +10729,6 @@ var _free = a0 => (_free = wasmExports["free"])(a0);
 
 var _coopFiberStart = Module["_coopFiberStart"] = a0 => (_coopFiberStart = Module["_coopFiberStart"] = wasmExports["coopFiberStart"])(a0);
 
-var _malloc = a0 => (_malloc = wasmExports["malloc"])(a0);
-
 var _webSetPad = Module["_webSetPad"] = (a0, a1, a2, a3) => (_webSetPad = Module["_webSetPad"] = wasmExports["webSetPad"])(a0, a1, a2, a3);
 
 var _webReleasePad = Module["_webReleasePad"] = a0 => (_webReleasePad = Module["_webReleasePad"] = wasmExports["webReleasePad"])(a0);
@@ -10738,6 +10736,8 @@ var _webReleasePad = Module["_webReleasePad"] = a0 => (_webReleasePad = Module["
 var _portWebFrame = Module["_portWebFrame"] = () => (_portWebFrame = Module["_portWebFrame"] = wasmExports["portWebFrame"])();
 
 var _main = Module["_main"] = (a0, a1) => (_main = Module["_main"] = wasmExports["__main_argc_argv"])(a0, a1);
+
+var _malloc = a0 => (_malloc = wasmExports["malloc"])(a0);
 
 var _emscripten_stack_set_limits = (a0, a1) => (_emscripten_stack_set_limits = wasmExports["emscripten_stack_set_limits"])(a0, a1);
 
@@ -10956,8 +10956,8 @@ function applySignatureConversions(wasmExports) {
   // First, make a copy of the incoming exports object
   wasmExports = Object.assign({}, wasmExports);
   var makeWrapper__p = f => a0 => f(BigInt(a0));
-  var makeWrapper_pp = f => a0 => Number(f(BigInt(a0)));
   var makeWrapper___PP = f => (a0, a1, a2) => f(a0, BigInt(a1 ? a1 : 0), BigInt(a2 ? a2 : 0));
+  var makeWrapper_pp = f => a0 => Number(f(BigInt(a0)));
   var makeWrapper__pp = f => (a0, a1) => f(BigInt(a0), BigInt(a1));
   var makeWrapper_p = f => () => Number(f());
   var makeWrapper__p__ = f => (a0, a1, a2) => f(BigInt(a0), a1, a2);
@@ -10972,8 +10972,8 @@ function applySignatureConversions(wasmExports) {
   var makeWrapper__p__________ = f => (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => f(BigInt(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
   var makeWrapper__p___________ = f => (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) => f(BigInt(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
   wasmExports["free"] = makeWrapper__p(wasmExports["free"]);
-  wasmExports["malloc"] = makeWrapper_pp(wasmExports["malloc"]);
   wasmExports["__main_argc_argv"] = makeWrapper___PP(wasmExports["__main_argc_argv"]);
+  wasmExports["malloc"] = makeWrapper_pp(wasmExports["malloc"]);
   wasmExports["emscripten_stack_set_limits"] = makeWrapper__pp(wasmExports["emscripten_stack_set_limits"]);
   wasmExports["_emscripten_stack_restore"] = makeWrapper__p(wasmExports["_emscripten_stack_restore"]);
   wasmExports["_emscripten_stack_alloc"] = makeWrapper_pp(wasmExports["_emscripten_stack_alloc"]);
