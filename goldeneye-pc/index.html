@@ -78,6 +78,9 @@ html.embed #stage,html.fill #stage{justify-content:center}
 html.touch.embed #canvas,html.touch.fill #canvas{width:min(100%,133.33vh);height:min(100%,75vw)}
 html.touch #stage:fullscreen #canvas{width:min(100vw,133.33vh);height:min(100vh,75vw)}
 @media (orientation:portrait){html.touch.embed #stage,html.touch.fill #stage,html.touch #stage:fullscreen{align-items:flex-start}}
+/* Group host: the frame is exactly 4:3; the players' pads live in the arcade's shared view. */
+html.group #canvas{width:100%!important;height:100%!important}
+html.group #fs,html.group #turn{display:none!important}
 /* No element fullscreen (iPhone Safari): the game fills the page instead. */
 html.fill,html.fill body{height:100%;overflow:hidden}
 html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:10;border-radius:0}
@@ -133,6 +136,11 @@ const EMBED=window.top!==window.self;
 const TOUCH=matchMedia('(pointer: coarse)').matches;
 if(EMBED){document.documentElement.classList.add('embed');document.querySelector('details').open=false;}
 if(TOUCH)document.documentElement.classList.add('touch');
+// Multiplayer group host (?group=host): the arcade's group code runs this page
+// in a hidden 960x720 frame, streams the picture to the other players and feeds
+// their controls in as players 2-4 (window.geGroup below).
+const GROUP=new URLSearchParams(location.search).get('group')==='host';
+if(GROUP)document.documentElement.classList.add('group');
 const ROM_URL='/games/n64/goldeneye007.z64', ROM_SIZE=12582912;
 const ROM_NAME='ge007.ntsc-final.z64';
 const DATA=['pcmodels-ntsc-final/pcmodels.bin','pcmodels-ntsc-final/manifest.csv','pccg-ntsc-final/pccg.bin','pccg-ntsc-final/manifest.csv'];
@@ -300,9 +308,10 @@ async function start(){
    onRuntimeInitialized:()=>{
     show(TOUCH?'Running.':'Running. Click the game to capture the mouse; Esc releases it.');
     document.documentElement.classList.add('running');canvas.focus();
-    if(TOUCH)startTouch();
+    if(TOUCH&&!GROUP)startTouch();
+    if(GROUP)geGroup.running=true;
    },
-   onAbort:w=>show('The game stopped: '+w+'\nReload the page to restart.',true),
+   onAbort:w=>fail('The game stopped: '+w+'\nReload the page to restart.'),
   };
   setInterval(persistSaves,4000);
   addEventListener('pagehide',persistSaves);
@@ -310,7 +319,7 @@ async function start(){
   const s=document.createElement('script');s.src='ge007.js?v='+BUILD;
   s.onerror=()=>show('Could not load the game code.',true);
   document.body.appendChild(s);
- }catch(e){console.error(e);show(e.message,true);startButton.disabled=false;}
+ }catch(e){console.error(e);fail(e.message);startButton.disabled=false;}
 }
 
 // Fullscreen: the real thing where the browser allows it (computers, Android,
@@ -350,8 +359,33 @@ $('fs').addEventListener('pointerdown',e=>e.preventDefault());   // keep the tap
 $('fs').onclick=toggleFull;
 fullButton.onclick=toggleFull;
 startButton.onclick=start;
-addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))show('The game crashed: '+e.message+'\nReload the page to restart. A screenshot of this message helps.',true);});
-prepare().then(ok=>{if(ok){startButton.disabled=false;if(!statusEl.classList.contains('err'))show('Ready. Press Start (the 12 MB game downloads once).');}})
- .catch(e=>{console.error(e);show(e.message,true);});
+addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))fail('The game crashed: '+e.message+'\nReload the page to restart. A screenshot of this message helps.');});
+function fail(t){show(t,true);if(GROUP)geGroup.error=t;}
+
+// What the arcade's group code (arcade-group.js) uses when this page is the host.
+const geGroup=window.geGroup={
+ running:false,error:null,
+ // The game picture (and sound, once the worklet runs) as one stream for the other players.
+ async capture(fps){
+  const stream=canvas.captureStream(fps);
+  stream.getVideoTracks().forEach(t=>{t.contentHint='motion';});
+  for(let i=0;i<30&&!AU.node;i++)await new Promise(r=>setTimeout(r,100));
+  if(AU.node){
+   if(!AU.dest){AU.dest=AU.ctx.createMediaStreamDestination();AU.node.connect(AU.dest);}
+   AU.dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+  }
+  return stream;
+ },
+ // An N64 controller (0-3): button bits, stick -80..80 (up is positive).
+ setPad(idx,buttons,x,y){try{Module._webSetPad(idx,buttons,x,y);}catch{}},
+ releasePad(idx){try{Module._webReleasePad(idx);}catch{}},
+ // Taps land on the arcade's view, not this frame, so it starts the sound from there.
+ resumeAudio(){if(AU.ctx&&AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});},
+};
+
+prepare().then(ok=>{if(!ok)return;
+  if(GROUP){start();return;}   // the lobby's Start button was the click
+  startButton.disabled=false;if(!statusEl.classList.contains('err'))show('Ready. Press Start (the 12 MB game downloads once).');})
+ .catch(e=>{console.error(e);fail(e.message);});
 </script>
 </body></html>
