@@ -33,6 +33,46 @@
   // triggers=Z, Start, D-pad; left stick=stick; right stick=C buttons.
   const PAD = { 0: 0, 1: 1, 2: 1, 4: 10, 5: 11, 6: 12, 7: 12, 9: 3, 12: 4, 13: 5, 14: 6, 15: 7 };
 
+  // N64 controller bits, as the GoldenEye PC version takes them.
+  const N64 = {
+    A: 0x8000, B: 0x4000, Z: 0x2000, START: 0x1000,
+    DU: 0x0800, DD: 0x0400, DL: 0x0200, DR: 0x0100,
+    L: 0x0020, R: 0x0010, CU: 0x0008, CD: 0x0004, CL: 0x0002, CR: 0x0001
+  };
+  // EmulatorJS id -> N64 bit (ids as in DIGITAL above).
+  const EJS_N64 = [[0, N64.A], [1, N64.B], [3, N64.START], [4, N64.DU], [5, N64.DD], [6, N64.DL],
+    [7, N64.DR], [10, N64.L], [11, N64.R], [12, N64.Z], [20, N64.CR], [21, N64.CL], [22, N64.CD], [23, N64.CU]];
+  const STICK_MAX = 80; // full N64 stick deflection
+
+  // EmulatorJS state ({b, x, y}, y down) <-> N64 state ({n, nx, ny}, up positive).
+  function ejsToN64(b, x, y) {
+    let n = 0;
+    for (const [id, bit] of EJS_N64) if ((b >>> id) & 1) n |= bit;
+    return { n, nx: Math.round(x * STICK_MAX), ny: Math.round(-y * STICK_MAX) };
+  }
+  function n64ToEjs(n, nx, ny) {
+    let b = 0;
+    for (const [id, bit] of EJS_N64) if (n & bit) b |= 1 << id;
+    const round = (v) => Math.round(Math.max(-1, Math.min(1, v)) * 100) / 100;
+    return { b: b >>> 0, x: round(nx / STICK_MAX), y: round(-ny / STICK_MAX) };
+  }
+
+  // The GoldenEye PC version's multiplayer control style: the stick looks and
+  // aims, the C buttons walk and strafe. Guest keyboards and gamepads follow it.
+  const PC_KEYS = {
+    KeyW: N64.CU, KeyS: N64.CD, KeyA: N64.CL, KeyD: N64.CR,
+    Space: N64.Z, Tab: N64.Z, ShiftLeft: N64.R, ShiftRight: N64.R,
+    KeyQ: N64.A, KeyE: N64.B, KeyR: N64.B, Enter: N64.START
+  };
+  const PC_LOOK = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
+  const PC_LOOK_SPEED = 60; // arrow keys: most of the stick, so turning stays controllable
+  // Standard gamepad: A = A (weapon / accept), B or X = B (use / back),
+  // Y = A, LT or LB = aim (R), RT or RB = fire (Z), Start, D-pad.
+  const PC_PAD = { 0: N64.A, 1: N64.B, 2: N64.B, 3: N64.A, 4: N64.R, 5: N64.Z, 6: N64.R, 7: N64.Z,
+    9: N64.START, 12: N64.DU, 13: N64.DD, 14: N64.DL, 15: N64.DR };
+
+  const TOUCH = matchMedia("(pointer: coarse)").matches;
+
   // Where each player's view sits in GoldenEye's 4:3 frame (fractions),
   // measured from the game's 2, 3 and 4 player split screens.
   const TOP = [0.0375, 0.4917];
@@ -87,8 +127,13 @@
     const whole = area(8, 12, 312, 228);
     if (whole < 12) return null;
 
-    // GoldenEye draws a black bar between the halves at rows 236-239 of 480.
-    const bar = Math.max(row(118, 8, 312), row(119, 8, 312));
+    // GoldenEye draws a black bar between the halves at rows 236-239 of 480
+    // on the N64 (118-119 here); the PC version's is one row lower (119-120).
+    const pair = (a, b) => Math.max(a, b);
+    const r118 = row(118, 8, 312);
+    const r119 = row(119, 8, 312);
+    const r120 = row(120, 8, 312);
+    const bar = Math.min(pair(r118, r119), pair(r119, r120));
     const top = area(8, 14, 312, 114);
     const bottom = area(8, 124, 312, 226);
 
@@ -178,13 +223,222 @@
       .tg-actions .tg-primary:disabled { opacity: .45; cursor: default; }
       .tg-actions .tg-secondary { padding: 10px 16px; background: #2a2150; color: #f4f1fc; }
       .tg-panel .tg-keys { margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: #8f86a6; text-align: center; }
+      .tg-view.tg-pass { pointer-events: none; }
+      .tg-view.tg-pass .tg-tools { pointer-events: auto; }
+      .tg-view.tg-touch .tg-badge { left: 50%; transform: translateX(-50%); }
+      .tg-view.tg-touch .tg-help { display: none; }
+      .tg-view.tg-touch .tg-sound { bottom: auto; top: 50%; }
+      ${PAD_CSS}
     `;
     document.head.append(style);
+  }
+
+  // ------------------------------------------------------- on-screen pad
+  // An N64 pad for phones and tablets, the same as the GoldenEye PC page's:
+  // monochrome outlines, a floating stick, C arrows, Fire / Aim / A / B,
+  // Start and fullscreen. "pc" puts the arrows (walk) left and the stick
+  // (look) right; "classic" is the N64 layout, stick left and arrows right.
+
+  const PAD_CSS = `
+    .tg-pad { position: absolute; inset: 0; z-index: 5; pointer-events: none; touch-action: none;
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; --u: min(1vmin, 4.4px); }
+    .tg-pad .tg-zone { position: absolute; right: 0; top: 0; bottom: 0; width: 48%; pointer-events: auto; touch-action: none; }
+    .tg-pad.classic .tg-zone { right: auto; left: 0; }
+    .tg-pad .tg-stick { position: absolute; left: calc(100% - var(--u) * 22); top: calc(100% - var(--u) * 67);
+      width: calc(var(--u) * 32); height: calc(var(--u) * 32); margin: calc(var(--u) * -16) 0 0 calc(var(--u) * -16);
+      border-radius: 50%; border: 1.5px solid rgba(255,255,255,.28); background: rgba(0,0,0,.3); opacity: .75; }
+    .tg-pad.classic .tg-stick { left: calc(var(--u) * 22); top: calc(100% - var(--u) * 28); }
+    .tg-pad .tg-stick.on { opacity: 1; }
+    .tg-pad .tg-knob { position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 13); height: calc(var(--u) * 13);
+      margin: calc(var(--u) * -6.5) 0 0 calc(var(--u) * -6.5); border-radius: 50%;
+      background: rgba(255,255,255,.14); border: 1.5px solid rgba(255,255,255,.5); }
+    .tg-pad button { position: absolute; pointer-events: auto; touch-action: none; display: flex; align-items: center;
+      justify-content: center; padding: 0; margin: 0; border-radius: calc(var(--u) * 2.6);
+      border: 1.5px solid rgba(255,255,255,.3); background: rgba(0,0,0,.4); color: rgba(255,255,255,.9);
+      font: italic 800 max(11px, calc(var(--u) * 4.4))/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-shadow: 0 1px 2px rgba(0,0,0,.5); -webkit-tap-highlight-color: transparent; cursor: default; }
+    .tg-pad button.on, .tg-pad .tg-fs:active { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.7); color: #fff; }
+    .tg-pad .pill { border-radius: 999px; }
+    .tg-pad button svg { width: 30%; height: 30%; fill: currentColor; }
+    .tg-pad .fire { right: calc(var(--u) * 3); bottom: calc(var(--u) * 4); width: calc(var(--u) * 38); height: calc(var(--u) * 15); }
+    .tg-pad .aim { right: calc(var(--u) * 3); bottom: calc(var(--u) * 21); width: calc(var(--u) * 38); height: calc(var(--u) * 11); }
+    .tg-pad .a { right: calc(var(--u) * 3); bottom: calc(var(--u) * 34); width: calc(var(--u) * 18.5); height: calc(var(--u) * 11); }
+    .tg-pad .b { right: calc(var(--u) * 22.5); bottom: calc(var(--u) * 34); width: calc(var(--u) * 18.5); height: calc(var(--u) * 11); }
+    .tg-pad .sq { width: calc(var(--u) * 12); height: calc(var(--u) * 12); }
+    .tg-pad .cu { left: calc(var(--u) * 16); bottom: calc(var(--u) * 35); }
+    .tg-pad .cl { left: calc(var(--u) * 3); bottom: calc(var(--u) * 22); }
+    .tg-pad .cr { left: calc(var(--u) * 29); bottom: calc(var(--u) * 22); }
+    .tg-pad .cd { left: calc(var(--u) * 16); bottom: calc(var(--u) * 9); }
+    .tg-pad.classic .cu { left: auto; right: calc(var(--u) * 16); bottom: calc(var(--u) * 74); }
+    .tg-pad.classic .cl { left: auto; right: calc(var(--u) * 29); bottom: calc(var(--u) * 61); }
+    .tg-pad.classic .cr { left: auto; right: calc(var(--u) * 3); bottom: calc(var(--u) * 61); }
+    .tg-pad.classic .cd { left: auto; right: calc(var(--u) * 16); bottom: calc(var(--u) * 48); }
+    .tg-pad .cd svg { transform: rotate(180deg); } .tg-pad .cl svg { transform: rotate(-90deg); } .tg-pad .cr svg { transform: rotate(90deg); }
+    .tg-pad .tg-fs { left: calc(var(--u) * 3); top: calc(var(--u) * 3); width: max(34px, calc(var(--u) * 10)); height: max(34px, calc(var(--u) * 10)); }
+    .tg-pad .tg-fs svg { width: 55%; height: 55%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .tg-pad .tg-fs .out, .tg-pad.full .tg-fs .in { display: none; } .tg-pad.full .tg-fs .out { display: block; }
+    .tg-pad .start { left: calc(var(--u) * 5 + max(34px, calc(var(--u) * 10))); top: calc(var(--u) * 3);
+      width: calc(var(--u) * 19); height: max(34px, calc(var(--u) * 10)); }
+  `;
+
+  const TRIANGLE = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.4 8.6 7.6H1.4z"/></svg>';
+  const FULLSCREEN_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="in" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>' +
+    '<path class="out" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+
+  // Builds the pad over `host` (an element). onChange({n, x, y}) gets the
+  // N64 state on every change; onTouch() runs on each touch (sound unlock).
+  function createPad(hostElement, layout, onChange, onTouch) {
+    const pad = document.createElement("div");
+    pad.className = "tg-pad" + (layout === "classic" ? " classic" : "");
+    pad.innerHTML =
+      '<div class="tg-zone"><div class="tg-stick"><div class="tg-knob"></div></div></div>' +
+      `<button class="tg-fs" aria-label="Fullscreen">${FULLSCREEN_ICON}</button>` +
+      `<button class="pill start" data-b="${N64.START}">Start</button>` +
+      `<button class="sq cu" data-b="${N64.CU}" aria-label="C up">${TRIANGLE}</button>` +
+      `<button class="sq cl" data-b="${N64.CL}" aria-label="C left">${TRIANGLE}</button>` +
+      `<button class="sq cr" data-b="${N64.CR}" aria-label="C right">${TRIANGLE}</button>` +
+      `<button class="sq cd" data-b="${N64.CD}" aria-label="C down">${TRIANGLE}</button>` +
+      `<button class="pill b" data-b="${N64.B}">B</button>` +
+      `<button class="pill a" data-b="${N64.A}">A</button>` +
+      `<button class="pill aim" data-b="${N64.R}">Aim</button>` +
+      `<button class="pill fire" data-b="${N64.Z}">Fire</button>`;
+    hostElement.append(pad);
+
+    const state = { n: 0, x: 0, y: 0 };
+    const changed = () => onChange({ ...state });
+    const zone = pad.querySelector(".tg-zone");
+    const stick = pad.querySelector(".tg-stick");
+    const knob = pad.querySelector(".tg-knob");
+    let sid = null;
+    let ox = 0;
+    let oy = 0;
+    let radius = 55;
+
+    pad.addEventListener("pointerdown", () => onTouch?.(), true);
+    zone.addEventListener("pointerdown", (event) => {
+      if (sid !== null) return;
+      sid = event.pointerId;
+      zone.setPointerCapture(sid);
+      const rect = zone.getBoundingClientRect();
+      ox = event.clientX;
+      oy = event.clientY;
+      radius = Math.max(30, stick.offsetWidth * 0.42); // full tilt near the ring's edge
+      stick.style.left = (ox - rect.left) + "px";
+      stick.style.top = (oy - rect.top) + "px";
+      stick.classList.add("on");
+      knob.style.transform = "";
+      event.preventDefault();
+    });
+    zone.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== sid) return;
+      let dx = event.clientX - ox;
+      let dy = event.clientY - oy;
+      const d = Math.hypot(dx, dy);
+      if (d > radius) {
+        dx *= radius / d;
+        dy *= radius / d;
+      }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`;
+      state.x = Math.round(dx / radius * STICK_MAX);
+      state.y = Math.round(-dy / radius * STICK_MAX);
+      changed();
+    });
+    const end = (event) => {
+      if (event.pointerId !== sid) return;
+      sid = null;
+      stick.style.left = stick.style.top = "";
+      stick.classList.remove("on");
+      knob.style.transform = "";
+      state.x = state.y = 0;
+      changed();
+    };
+    zone.addEventListener("pointerup", end);
+    zone.addEventListener("pointercancel", end);
+
+    for (const button of pad.querySelectorAll("button[data-b]")) {
+      const bit = Number(button.dataset.b);
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        button.setPointerCapture?.(event.pointerId);
+        button.classList.add("on");
+        state.n |= bit;
+        changed();
+      });
+      const off = () => {
+        button.classList.remove("on");
+        state.n &= ~bit;
+        changed();
+      };
+      button.addEventListener("pointerup", off);
+      button.addEventListener("pointercancel", off);
+      button.addEventListener("contextmenu", (event) => event.preventDefault());
+    }
+
+    const fullscreen = pad.querySelector(".tg-fs");
+    fullscreen.addEventListener("pointerdown", (event) => event.preventDefault());
+    fullscreen.onclick = () => toggleFullscreen();
+    const syncFull = (on) => pad.classList.toggle("full", on);
+    const stopFull = watchFullscreen(syncFull);
+
+    return {
+      state,
+      destroy() {
+        stopFull();
+        pad.remove();
+      }
+    };
+  }
+
+  // Fullscreen for the group view: the real thing where the browser allows it,
+  // otherwise (iPhone) the arcade page stretches its game frame over the page.
+  let filled = false;
+  const fullListeners = new Set();
+  const fullElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  const fullNotify = () => {
+    for (const fn of fullListeners) fn(Boolean(fullElement()) || filled);
+  };
+  document.addEventListener("fullscreenchange", fullNotify);
+  document.addEventListener("webkitfullscreenchange", fullNotify);
+  window.addEventListener("message", (event) => {
+    if (event.origin !== location.origin || event.source !== parent || event.data?.type !== "token-fullscreen") return;
+    filled = Boolean(event.data.on);
+    fullNotify();
+  });
+  function watchFullscreen(fn) {
+    fullListeners.add(fn);
+    fn(Boolean(fullElement()) || filled);
+    return () => fullListeners.delete(fn);
+  }
+  async function toggleFullscreen() {
+    if (fullElement()) {
+      try {
+        await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } catch {}
+      return;
+    }
+    if (filled) {
+      parent.postMessage({ type: "token-fullscreen", on: false }, location.origin);
+      return;
+    }
+    const root = document.documentElement;
+    const request = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (request && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) {
+      try {
+        await request.call(root, { navigationUI: "hide" });
+        screen.orientation?.lock?.("landscape")?.catch(() => {});
+        return;
+      } catch {}
+    }
+    if (parent !== window) parent.postMessage({ type: "token-fullscreen", on: true }, location.origin);
   }
 
   const CONTROLS_HELP =
     "Keyboard: T F G H move · X = A · S = B · Tab = Z · Q / E = L / R · " +
     "I J K L = C buttons · Enter = Start. Gamepads work too.";
+  const PC_HELP =
+    "Keyboard: W A S D move · arrow keys look · Space fire · Shift aim · " +
+    "Q = A (weapon, accept) · E = B (use, back) · Enter = Start. " +
+    "Gamepad: left stick moves, right stick looks, triggers aim and fire.";
 
   // How each group game is shown and set up. Keys match games.json ids.
   //  view "split":  the game splits the screen; each player sees their part.
@@ -206,6 +460,206 @@
     }
   };
   const DEFAULT_GAME = { view: "shared", fps: 60, hint: () => "" };
+
+  // --------------------------------------------------------------- engines
+  // What the host runs. Each engine boots the game, captures it for the
+  // stream, feeds guests' controls in, and wires up the host's own controls.
+
+  // EmulatorJS (N64 and other consoles).
+  function emulatorEngine(bootEmulator) {
+    let hostKeys = null;
+
+    return {
+      boot: (onStart) => bootEmulator({ onStart }),
+
+      async capture(fps) {
+        const emulator = window.EJS_emulator;
+        // Each guest gets its own encoded stream, so match the game's frame
+        // rate instead of always encoding 60.
+        const video = emulator.canvas.captureStream(fps);
+        video.getVideoTracks().forEach((track) => {
+          track.contentHint = "motion";
+        });
+
+        // The emulator's sound runs through one OpenAL gain node.
+        for (let i = 0; i < 100 && !emulator.Module?.AL?.currentCtx; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        const al = emulator.Module?.AL?.currentCtx;
+        if (al?.gain && al.audioCtx) {
+          const destination = al.audioCtx.createMediaStreamDestination();
+          al.gain.connect(destination);
+          destination.stream.getAudioTracks().forEach((track) => video.addTrack(track));
+        }
+        return video;
+      },
+
+      input(entry, input) {
+        const gm = window.EJS_emulator?.gameManager;
+        if (!gm) return;
+        const player = entry.slot - 1;
+        const set = (id, value) => {
+          if ((entry.held[id] || 0) !== value) {
+            entry.held[id] = value;
+            gm.simulateInput(player, id, value);
+          }
+        };
+
+        const buttons = Number(input.b) >>> 0;
+        for (const id of DIGITAL) set(id, (buttons >>> id) & 1);
+
+        const clamp = (v) => Math.max(-1, Math.min(1, Number(v) || 0));
+        const x = clamp(input.x);
+        const y = clamp(input.y);
+        set(STICK.right, x > 0 ? Math.round(x * FULL) : 0);
+        set(STICK.left, x < 0 ? Math.round(-x * FULL) : 0);
+        set(STICK.down, y > 0 ? Math.round(y * FULL) : 0);
+        set(STICK.up, y < 0 ? Math.round(-y * FULL) : 0);
+      },
+
+      release(entry) {
+        const gm = window.EJS_emulator?.gameManager;
+        if (!gm) return;
+        const player = entry.slot - 1;
+        for (const id of DIGITAL) {
+          if (entry.held[id]) gm.simulateInput(player, id, 0);
+        }
+        for (const id of Object.values(STICK)) {
+          if (entry.held[id]) gm.simulateInput(player, id, 0);
+        }
+      },
+
+      attach(view) {
+        // The host plays on the emulator's keyboard controls, but EmulatorJS
+        // only hears keys sent to its own element, and the shared view sits
+        // on top of it. A click on the view would move focus to the page,
+        // so keep focus on the emulator and hand it any key that lands
+        // elsewhere.
+        const game = document.getElementById("game");
+        const focusGame = () => game?.focus({ preventScroll: true });
+        view.view.addEventListener("mousedown", (event) => {
+          if (event.target.closest("button")) return;
+          event.preventDefault(); // stops the browser moving focus
+          focusGame();
+        });
+        view.view.addEventListener("pointerdown", focusGame);
+        view.view.style.pointerEvents = "auto";
+        hostKeys = (event) => {
+          const emulator = window.EJS_emulator;
+          if (!emulator?.started || game.contains(event.target)) return;
+          if (event.target.closest?.("input, textarea, select, [contenteditable]")) return;
+          emulator.keyChange(event);
+          if (event.type === "keydown") focusGame();
+        };
+        document.addEventListener("keydown", hostKeys, true);
+        document.addEventListener("keyup", hostKeys, true);
+        focusGame();
+      },
+
+      detach() {
+        if (!hostKeys) return;
+        document.removeEventListener("keydown", hostKeys, true);
+        document.removeEventListener("keyup", hostKeys, true);
+        hostKeys = null;
+      }
+    };
+  }
+
+  // The GoldenEye PC version (goldeneye-pc/), in a frame of its own under the
+  // shared view. The frame is always 960x720 inside, so every player's part of
+  // the split screen streams at 480x360 however big the host's window is; it
+  // is scaled to sit exactly under the view's picture.
+  const PC_SIZE = [960, 720];
+
+  function pcEngine(container) {
+    let frame = null;
+    let pad = null;
+    const game = () => frame?.contentWindow?.geGroup;
+    const resume = () => game()?.resumeAudio();
+
+    function fit() {
+      const scale = Math.min(innerWidth / PC_SIZE[0], innerHeight / PC_SIZE[1]);
+      Object.assign(container.style, {
+        left: (innerWidth - PC_SIZE[0] * scale) / 2 + "px",
+        top: (innerHeight - PC_SIZE[1] * scale) / 2 + "px",
+        transform: `scale(${scale})`
+      });
+    }
+
+    return {
+      hello: { e: "pc" },
+      bitrate: 3_000_000,
+
+      async boot(onStart) {
+        Object.assign(container.style, {
+          position: "absolute", width: PC_SIZE[0] + "px", height: PC_SIZE[1] + "px", transformOrigin: "0 0"
+        });
+        frame = document.createElement("iframe");
+        frame.src = "goldeneye-pc/?embed=1&group=host";
+        frame.allow = "autoplay; fullscreen; gamepad";
+        frame.title = "GoldenEye 007";
+        frame.style.cssText = "display:block;width:100%;height:100%;border:0;background:#000";
+        container.replaceChildren(frame);
+        fit();
+        addEventListener("resize", fit);
+
+        // The page downloads the game (once), then starts it on its own.
+        for (let waited = 0; ; waited += 200) {
+          const g = game();
+          if (g?.error) throw new Error(g.error);
+          if (g?.running) break;
+          if (waited > 300000) throw new Error("GoldenEye took too long to start. Try again.");
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+        await onStart();
+      },
+
+      capture: (fps) => game().capture(fps),
+
+      input(entry, input) {
+        let state;
+        if (typeof input.n === "number") {
+          const stick = (v) => Math.max(-STICK_MAX, Math.min(STICK_MAX, Math.round(Number(v) || 0)));
+          state = { n: input.n & 0xffff, nx: stick(input.nx), ny: stick(input.ny) };
+        } else {
+          // An older guest page: EmulatorJS-style state.
+          const clamp = (v) => Math.max(-1, Math.min(1, Number(v) || 0));
+          state = ejsToN64(Number(input.b) >>> 0, clamp(input.x), clamp(input.y));
+        }
+        const key = `${state.n}|${state.nx}|${state.ny}`;
+        if (entry.held.key === key) return;
+        entry.held.key = key;
+        game()?.setPad(entry.slot - 1, state.n, state.nx, state.ny);
+      },
+
+      release(entry) {
+        game()?.releasePad(entry.slot - 1);
+      },
+
+      attach(view) {
+        // Mouse and keyboard reach the game straight through the view (its
+        // picture lines up with the game's own canvas); sound starts on the
+        // host's first click or tap there. A phone host gets the on-screen pad.
+        view.view.classList.add("tg-pass");
+        document.addEventListener("pointerdown", resume, true);
+        document.addEventListener("keydown", resume, true);
+        if (TOUCH) {
+          view.view.classList.add("tg-touch");
+          pad = createPad(view.view, "pc", (s) => game()?.setPad(0, s.n, s.x, s.y), resume);
+        } else {
+          frame.focus();
+        }
+      },
+
+      detach() {
+        document.removeEventListener("pointerdown", resume, true);
+        document.removeEventListener("keydown", resume, true);
+        removeEventListener("resize", fit);
+        pad?.destroy();
+        pad = null;
+      }
+    };
+  }
 
   // ------------------------------------------------------------------ main
 
@@ -448,7 +902,11 @@
 
       const keys = document.createElement("p");
       keys.className = "tg-keys";
-      keys.textContent = CONTROLS_HELP;
+      // GoldenEye runs the PC version when the host's browser can, and its
+      // controls differ; the game view shows the right ones once it starts.
+      keys.textContent = state.group.game === "goldeneye007"
+        ? "Keyboard, gamepad or the on-screen pad on phones: the controls show when the game starts."
+        : CONTROLS_HELP;
 
       panel.append(h1, sub, list, actions, note, keys);
       showLobby(panel);
@@ -505,10 +963,16 @@
 
       const help = document.createElement("div");
       help.className = "tg-help";
-      help.textContent = CONTROLS_HELP;
-      setTimeout(() => {
-        help.style.opacity = "0";
-      }, 9000);
+      let helpTimer = 0;
+      function showHelp(text) {
+        help.textContent = text;
+        help.style.opacity = "1";
+        clearTimeout(helpTimer);
+        helpTimer = setTimeout(() => {
+          help.style.opacity = "0";
+        }, 9000);
+      }
+      showHelp(CONTROLS_HELP);
 
       view.append(frame, badge, tools, help);
       document.body.append(view);
@@ -562,6 +1026,7 @@
           slot = next;
           badge.textContent = "PLAYER " + slot;
         },
+        help: showHelp,
         destroy() {
           stopWatching();
           resize.disconnect();
@@ -573,22 +1038,14 @@
     // -------------------------------------------------------------- host
 
     const host = (() => {
-      const peers = new Map(); // guest id -> { pc, slot, held, seq }
+      const peers = new Map(); // guest id -> { pc, slot, held, seq, hello }
+      const engine = options.engine || emulatorEngine(bootEmulator);
       let stream = null;
       let view = null;
       let booting = false;
-      let hostKeys = null;
 
       function release(entry) {
-        const gm = window.EJS_emulator?.gameManager;
-        if (!gm) return;
-        const player = entry.slot - 1;
-        for (const id of DIGITAL) {
-          if (entry.held[id]) gm.simulateInput(player, id, 0);
-        }
-        for (const id of Object.values(STICK)) {
-          if (entry.held[id]) gm.simulateInput(player, id, 0);
-        }
+        engine.release(entry);
         entry.held = {};
       }
 
@@ -601,34 +1058,16 @@
         }
         if (!input || typeof input.s !== "number" || input.s <= entry.seq) return;
         entry.seq = input.s;
-
-        const gm = window.EJS_emulator?.gameManager;
         // Never let a guest drive player 1 (the host).
-        if (!gm || entry.slot < 2 || entry.slot > 4) return;
-        const player = entry.slot - 1;
-        const set = (id, value) => {
-          if ((entry.held[id] || 0) !== value) {
-            entry.held[id] = value;
-            gm.simulateInput(player, id, value);
-          }
-        };
-
-        const buttons = Number(input.b) >>> 0;
-        for (const id of DIGITAL) set(id, (buttons >>> id) & 1);
-
-        const clamp = (v) => Math.max(-1, Math.min(1, Number(v) || 0));
-        const x = clamp(input.x);
-        const y = clamp(input.y);
-        set(STICK.right, x > 0 ? Math.round(x * FULL) : 0);
-        set(STICK.left, x < 0 ? Math.round(-x * FULL) : 0);
-        set(STICK.down, y > 0 ? Math.round(y * FULL) : 0);
-        set(STICK.up, y < 0 ? Math.round(-y * FULL) : 0);
+        if (entry.slot < 2 || entry.slot > 4) return;
+        engine.input(entry, input);
       }
 
       function close(id) {
         const entry = peers.get(id);
         if (!entry) return;
         peers.delete(id);
+        clearInterval(entry.hello);
         release(entry);
         try {
           entry.pc.close();
@@ -637,14 +1076,28 @@
 
       async function connectGuest(player) {
         const pc = new RTCPeerConnection({ iceServers });
-        const entry = { pc, slot: player.slot, held: {}, seq: -1 };
+        const entry = { pc, slot: player.slot, held: {}, seq: -1, hello: null };
         peers.set(player.id, entry);
 
         for (const track of stream.getTracks()) pc.addTrack(track, stream);
 
         const channel = pc.createDataChannel("input", { ordered: false, maxRetransmits: 0 });
         channel.onmessage = (event) => apply(entry, event.data);
-        channel.onclose = () => release(entry);
+        channel.onclose = () => {
+          clearInterval(entry.hello);
+          release(entry);
+        };
+        // Tell the guest which version runs here, so its controls match.
+        // Repeated, since this channel may drop messages.
+        if (engine.hello) {
+          const hello = JSON.stringify(engine.hello);
+          channel.onopen = () => {
+            channel.send(hello);
+            entry.hello = setInterval(() => {
+              if (channel.readyState === "open") channel.send(hello);
+            }, 1000);
+          };
+        }
 
         pc.onicecandidate = (event) => {
           if (event.candidate) send({ type: "signal", to: player.id, data: { candidate: event.candidate.toJSON() } });
@@ -665,7 +1118,7 @@
             const parameters = sender.getParameters();
             parameters.degradationPreference = "maintain-framerate";
             parameters.encodings = parameters.encodings?.length ? parameters.encodings : [{}];
-            parameters.encodings[0].maxBitrate = 2_500_000;
+            parameters.encodings[0].maxBitrate = engine.bitrate || 2_500_000;
             await sender.setParameters(parameters).catch(() => {});
           }
         } catch (error) {
@@ -693,73 +1146,29 @@
         }
       }
 
-      async function capture() {
-        const emulator = window.EJS_emulator;
-        // Each guest gets its own encoded stream, so match the game's frame
-        // rate instead of always encoding 60.
-        const video = emulator.canvas.captureStream(gameInfo().fps);
-        video.getVideoTracks().forEach((track) => {
-          track.contentHint = "motion";
-        });
-
-        // The emulator's sound runs through one OpenAL gain node.
-        for (let i = 0; i < 100 && !emulator.Module?.AL?.currentCtx; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-        const al = emulator.Module?.AL?.currentCtx;
-        if (al?.gain && al.audioCtx) {
-          const destination = al.audioCtx.createMediaStreamDestination();
-          al.gain.connect(destination);
-          destination.stream.getAudioTracks().forEach((track) => video.addTrack(track));
-        }
-        return video;
-      }
-
       function begin() {
         if (booting) return;
         booting = true;
         say("Starting the game…");
 
-        bootEmulator({
-          onStart: async () => {
-            try {
-              stream = await capture();
-            } catch (error) {
-              console.warn("Capture failed", error);
-              return end("Could not share the game from this browser.");
-            }
-            view = createView(state.you.slot);
-            const local = new MediaStream(stream.getVideoTracks());
-            view.video.muted = true; // the host hears the emulator directly
-            view.video.srcObject = local;
-            view.video.play().catch(() => {});
-            // The host plays on the emulator's keyboard controls, but EmulatorJS
-            // only hears keys sent to its own element, and the shared view sits
-            // on top of it. A click on the view would move focus to the page,
-            // so keep focus on the emulator and hand it any key that lands
-            // elsewhere.
-            const game = document.getElementById("game");
-            const focusGame = () => game?.focus({ preventScroll: true });
-            view.view.addEventListener("mousedown", (event) => {
-              if (event.target.closest("button")) return;
-              event.preventDefault(); // stops the browser moving focus
-              focusGame();
-            });
-            view.view.addEventListener("pointerdown", focusGame);
-            view.view.style.pointerEvents = "auto";
-            hostKeys = (event) => {
-              const emulator = window.EJS_emulator;
-              if (!emulator?.started || game.contains(event.target)) return;
-              if (event.target.closest?.("input, textarea, select, [contenteditable]")) return;
-              emulator.keyChange(event);
-              if (event.type === "keydown") focusGame();
-            };
-            document.addEventListener("keydown", hostKeys, true);
-            document.addEventListener("keyup", hostKeys, true);
-            focusGame();
-            statusBox.hidden = true;
-            sync();
+        Promise.resolve(engine.boot(async () => {
+          try {
+            stream = await engine.capture(gameInfo().fps);
+          } catch (error) {
+            console.warn("Capture failed", error);
+            return end("Could not share the game from this browser.");
           }
+          view = createView(state.you.slot);
+          const local = new MediaStream(stream.getVideoTracks());
+          view.video.muted = true; // the host hears the game directly
+          view.video.srcObject = local;
+          view.video.play().catch(() => {});
+          engine.attach(view);
+          statusBox.hidden = true;
+          sync();
+        })).catch((error) => {
+          console.warn("Game failed to start", error);
+          end(error?.message || "The game could not start.");
         });
       }
 
@@ -775,11 +1184,7 @@
 
       function stop() {
         for (const id of [...peers.keys()]) close(id);
-        if (hostKeys) {
-          document.removeEventListener("keydown", hostKeys, true);
-          document.removeEventListener("keyup", hostKeys, true);
-          hostKeys = null;
-        }
+        engine.detach();
         view?.destroy();
         view = null;
       }
@@ -798,9 +1203,12 @@
       let seq = 0;
       let lastSent = "";
       let lastTime = 0;
+      let engine = "classic"; // "pc" once the host says it runs the GoldenEye PC version
+      let pad = null;
       const keys = new Set();
 
-      function input() {
+      // The N64 classic mapping (EmulatorJS hosts), as {b, x, y}.
+      function classicInput() {
         let buttons = 0;
         let x = 0;
         let y = 0;
@@ -833,11 +1241,66 @@
         return { b: buttons >>> 0, x: round(x), y: round(y) };
       }
 
+      // The GoldenEye PC version's mapping, as N64 state: walk and strafe on
+      // W A S D / the left stick (C buttons), look and aim on the arrow keys /
+      // the right stick (the N64 stick).
+      function pcInput() {
+        let n = 0;
+        let nx = 0;
+        let ny = 0;
+
+        for (const code of keys) {
+          if (code in PC_KEYS) n |= PC_KEYS[code];
+          if (code in PC_LOOK) {
+            nx += PC_LOOK[code][0] * PC_LOOK_SPEED;
+            ny += PC_LOOK[code][1] * PC_LOOK_SPEED;
+          }
+        }
+
+        for (const gp of navigator.getGamepads ? navigator.getGamepads() : []) {
+          if (!gp || !gp.connected) continue;
+          gp.buttons.forEach((button, index) => {
+            if (button.pressed && index in PC_PAD) n |= PC_PAD[index];
+          });
+          const dead = (v) => (Math.abs(v) < 0.15 ? 0 : v);
+          nx += dead(gp.axes[2] || 0) * STICK_MAX;
+          ny -= dead(gp.axes[3] || 0) * STICK_MAX;
+          const mx = gp.axes[0] || 0;
+          const my = gp.axes[1] || 0;
+          if (my < -0.5) n |= N64.CU;
+          if (my > 0.5) n |= N64.CD;
+          if (mx < -0.5) n |= N64.CL;
+          if (mx > 0.5) n |= N64.CR;
+        }
+
+        const clamp = (v) => Math.round(Math.max(-STICK_MAX, Math.min(STICK_MAX, v)));
+        return { n, nx: clamp(nx), ny: clamp(ny) };
+      }
+
+      // Both forms go out: an EmulatorJS host reads {b, x, y}, the PC host {n, nx, ny}.
+      function input() {
+        let state;
+        if (engine === "pc") {
+          state = pcInput();
+        } else {
+          const c = classicInput();
+          state = ejsToN64(c.b, c.x, c.y);
+        }
+        if (pad) {
+          state.n |= pad.state.n;
+          if (pad.state.x || pad.state.y) {
+            state.nx = pad.state.x;
+            state.ny = pad.state.y;
+          }
+        }
+        return { ...n64ToEjs(state.n, state.nx, state.ny), ...state };
+      }
+
       function tick() {
         if (!channel || channel.readyState !== "open") return;
         const now = performance.now();
         const value = input();
-        const key = `${value.b}|${value.x}|${value.y}`;
+        const key = `${value.n}|${value.nx}|${value.ny}`;
         // Send changes right away, and repeat the current state as a heartbeat.
         if (key !== lastSent || now - lastTime > 100) {
           channel.send(JSON.stringify({ s: ++seq, ...value }));
@@ -847,7 +1310,10 @@
       }
 
       const onKey = (event) => {
-        if (!(event.code in KEYS) && !(event.code in STICK_KEYS)) return;
+        const known = engine === "pc"
+          ? event.code in PC_KEYS || event.code in PC_LOOK
+          : event.code in KEYS || event.code in STICK_KEYS;
+        if (!known) return;
         event.preventDefault();
         if (event.type === "keydown") keys.add(event.code);
         else keys.delete(event.code);
@@ -871,10 +1337,31 @@
         view.view.append(button);
       }
 
+      // The host's hello: switch to its version's controls and help.
+      function setEngine(next) {
+        if (next !== "pc" || engine === "pc") return;
+        engine = "pc";
+        keys.clear();
+        view?.help(PC_HELP);
+        if (pad) {
+          pad.destroy();
+          pad = createPad(view.view, "pc", tick, unmute);
+        }
+      }
+
+      // A tap on the pad counts as the click that sound needs.
+      function unmute() {
+        view?.view.querySelector(".tg-sound")?.click();
+      }
+
       function begin() {
         statusBox.hidden = true;
         view = createView(state.you.slot);
         view.note("The host is starting the game…");
+        if (TOUCH) {
+          view.view.classList.add("tg-touch");
+          pad = createPad(view.view, engine, tick, unmute);
+        }
         document.addEventListener("keydown", onKey, true);
         document.addEventListener("keyup", onKey, true);
         window.addEventListener("blur", onBlur);
@@ -917,6 +1404,11 @@
           };
           connection.ondatachannel = (event) => {
             channel = event.channel;
+            channel.onmessage = (message) => {
+              try {
+                setEngine(JSON.parse(message.data).e);
+              } catch {}
+            };
           };
           connection.onicecandidate = (event) => {
             if (event.candidate) send({ type: "signal", to: from, data: { candidate: event.candidate.toJSON() } });
@@ -940,6 +1432,8 @@
 
       function stop() {
         clearInterval(timer);
+        pad?.destroy();
+        pad = null;
         document.removeEventListener("keydown", onKey, true);
         document.removeEventListener("keyup", onKey, true);
         window.removeEventListener("blur", onBlur);
@@ -964,5 +1458,5 @@
     connect();
   }
 
-  window.TokenGroup = { start, classifyFrame, region };
+  window.TokenGroup = { start, pcEngine, classifyFrame, region };
 })();
