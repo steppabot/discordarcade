@@ -350,19 +350,26 @@
       );
     }
 
-    // GoldenEye 007 plays the native PC port (goldeneye-pc/) instead of the
-    // N64 emulator wherever the browser has WebGL 2 (current Chrome, Edge,
-    // Firefox and Safari, phones included).
+    // GoldenEye 007 and WCW/nWo Revenge play their native PC versions
+    // (goldeneye-pc/, revenge-pc/) instead of the N64 emulator wherever the
+    // browser has WebGL 2 (current Chrome, Edge, Firefox and Safari, phones
+    // included). Returns the version's id, or null.
+    const PC_PORTS = {
+      "/games/n64/goldeneye007.z64": { id: "goldeneye", page: "goldeneye-pc/" },
+      "/games/n64/wcwvsnworevenge.z64": { id: "revenge", page: "revenge-pc/" }
+    };
+
     function pcPortAvailable(core, url) {
-      if (params.get("pc") === "0") return false;
-      if (!["n64", "mupen64plus_next", "parallel-n64"].includes(core)) return false;
-      if (new URL(url).pathname !== "/games/n64/goldeneye007.z64") return false;
-      if (typeof BigInt64Array === "undefined") return false;
+      if (params.get("pc") === "0") return null;
+      if (!["n64", "mupen64plus_next", "parallel-n64"].includes(core)) return null;
+      const port = PC_PORTS[new URL(url).pathname];
+      if (!port) return null;
+      if (typeof BigInt64Array === "undefined") return null;
 
       try {
-        return Boolean(document.createElement("canvas").getContext("webgl2"));
+        return document.createElement("canvas").getContext("webgl2") ? port : null;
       } catch {
-        return false;
+        return null;
       }
     }
 
@@ -397,10 +404,11 @@
             statusBox,
             message,
             game: { title },
-            // GoldenEye: a host whose browser runs the PC version streams that
-            // (sharper, and it is what solo play uses); otherwise the N64 one.
+            // GoldenEye and Revenge: a host whose browser runs the PC version
+            // streams that (sharper, and it is what solo play uses); otherwise
+            // the N64 one.
             engine: pcPortAvailable(core, url)
-              ? window.TokenGroup.pcEngine(container)
+              ? window.TokenGroup.pcEngine(container, pcPortAvailable(core, url).id)
               : null,
             bootEmulator: ({ onStart }) =>
               bootRetro(core, url, title, { host: true, onStart })
@@ -408,10 +416,12 @@
           return;
         }
 
-        // GoldenEye 007: the native PC port (groups stream it too, above).
-        // "pc=0" forces the N64 version (the PC page links back here with it).
-        if (pcPortAvailable(core, url)) {
-          const pc = new URL("goldeneye-pc/", location.href);
+        // GoldenEye 007 and Revenge: the native PC versions (groups stream them
+        // too, above). "pc=0" forces the N64 version (the PC page links back
+        // here with it).
+        const port = pcPortAvailable(core, url);
+        if (port) {
+          const pc = new URL(port.page, location.href);
           const n64 = new URL(location.href);
 
           n64.searchParams.set("pc", "0");
