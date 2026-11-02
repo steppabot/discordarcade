@@ -138,7 +138,7 @@ const ROM_NAME='ge007.ntsc-final.z64';
 const DATA=['pcmodels-ntsc-final/pcmodels.bin','pcmodels-ntsc-final/manifest.csv','pccg-ntsc-final/pccg.bin','pccg-ntsc-final/manifest.csv'];
 const SAVE_FILES={'ge007.eep':'token-gepc-eep','ge007.ini':'token-gepc-ini'};   // file in /data -> localStorage key
 const CACHE='token-gepc-v1';
-const BUILD='2';
+const BUILD='3';
 // Opened from the arcade's GoldenEye card: the N64 player URL to fall back to.
 const N64_URL=(()=>{try{const u=new URL(new URLSearchParams(location.search).get('n64')||'',location.href);
  return u.origin===location.origin&&u.pathname.endsWith('/arcade-player.html')?u.href:null;}catch{return null;}})();
@@ -219,6 +219,60 @@ function startTouch(){
  $('touch').hidden=false;
 }
 
+// Sound: the game's mix plays through an AudioWorklet (ge-audio.js) on the
+// browser's audio thread, so when the game keeps the page busy (loading a
+// level) it goes quiet instead of looping the last bit of sound. The game
+// keeps a cushion of sound queued ahead of the speakers: 1024 frames (46 ms)
+// to start, grown in steps of 512 (to at most 139 ms) when playback runs dry
+// 3 times within 10 s, as on a phone that can't hold its frame rate, and
+// shrunk back slowly while it stays smooth. port/src/audio.c calls these.
+const AU={ctx:null,node:null,rate:22050,endT:0,sent:0,target:1024,runs:[],hist:[],underruns:0,calm:0,pending:[]};
+function geAudioInit(rate){
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC||typeof AudioWorkletNode==='undefined')return 0;   // old browser: the game falls back to SDL's output
+ try{
+  AU.rate=rate;AU.ctx=new AC({latencyHint:'interactive'});
+  if(!AU.ctx.audioWorklet)return 0;
+  AU.ctx.audioWorklet.addModule('ge-audio.js?v='+BUILD).then(()=>{
+   AU.node=new AudioWorkletNode(AU.ctx,'ge-out',{numberOfInputs:0,outputChannelCount:[2],processorOptions:{rate}});
+   AU.node.connect(AU.ctx.destination);
+   AU.node.port.onmessage=e=>auReport(e.data);
+   for(const c of AU.pending)AU.node.port.postMessage(c,[c.buffer]);AU.pending.length=0;
+  }).catch(e=>console.warn('GoldenEye sound could not start:',e));
+  // Browsers start sound only after a tap or key press on the page.
+  const resume=()=>{if(AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});};
+  for(const t of ['pointerdown','touchend','mousedown','keydown'])addEventListener(t,resume,true);
+  resume();
+  return 1;
+ }catch(e){console.warn(e);return 0;}
+}
+function auQueued(){return AU.ctx&&AU.ctx.state==='running'?Math.max(0,(AU.endT-AU.ctx.currentTime)*AU.rate):0;}
+function geAudioPush(view){
+ if(!AU.ctx||AU.ctx.state!=='running')return;   // not unlocked yet: nothing would play
+ if(auQueued()>AU.target+2048)return;            // after a burst, drop rather than fall behind
+ const data=view.slice(),now=AU.ctx.currentTime;
+ if(AU.endT<now)AU.endT=now;
+ AU.endT+=(data.length>>1)/AU.rate;AU.sent+=data.length>>1;
+ if(AU.node)AU.node.port.postMessage(data,[data.buffer]);else if(AU.pending.length<8)AU.pending.push(data);
+}
+function auReport(m){
+ // The worklet's own count corrects the estimate (sound still in flight counts as queued).
+ AU.endT=m.t+(m.buffered+Math.max(0,AU.sent-m.received))/AU.rate;
+ const now=performance.now();
+ AU.hist.push([now,AU.sent]);while(AU.hist.length>2&&now-AU.hist[0][0]>3000)AU.hist.shift();
+ const [t0,s0]=AU.hist[0],made=now-t0>1000?(AU.sent-s0)/((now-t0)/1000)/AU.rate:1;
+ if(m.underruns>AU.underruns){
+  AU.underruns=m.underruns;AU.calm=now;
+  // Grow only for jittery delivery; when the game is making less sound than
+  // plays (a very slow frame rate), a bigger cushion would only add delay.
+  if(!document.hidden&&made>0.92){
+   AU.runs.push(now);AU.runs=AU.runs.filter(t=>now-t<10000);
+   if(AU.runs.length>=3&&AU.target<3072){AU.target+=512;AU.runs=[];}
+  }
+ }else if(now-AU.calm>20000&&AU.target>1024){AU.target-=256;AU.calm=now;}
+}
+window.geAudioStats=()=>({state:AU.ctx?.state,queued:Math.round(auQueued()),target:AU.target,underruns:AU.underruns,sent:AU.sent});
+
 async function start(){
  startButton.disabled=true;
  try{
@@ -231,6 +285,7 @@ async function start(){
   stage.classList.add('on');fullButton.disabled=false;
   window.Module={
    canvas,
+   geAudioInit,geAudioPush,geAudioQueued:()=>Math.round(auQueued()),geAudioTarget:()=>AU.target,
    locateFile:p=>p+'?v='+BUILD,   // new build, new URL: never mix a cached .js with a different .wasm
    print:t=>console.log(t),printErr:t=>console.warn(t),
    preRun:[()=>{
