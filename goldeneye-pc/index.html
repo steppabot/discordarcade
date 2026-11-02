@@ -42,25 +42,26 @@ html.embed.running.err #panel{display:flex}
 #stage{--u:min(1vmin,4.4px)}
 #touch{position:absolute;inset:0;z-index:1;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #touch[hidden]{display:none}
-#touch .zone{position:absolute;left:0;top:0;bottom:0;width:48%;pointer-events:auto;touch-action:none}
-/* The stick rests bottom-left and jumps to wherever the thumb lands. */
-#stick{position:absolute;left:calc(var(--u)*22);top:calc(100% - var(--u)*28);width:calc(var(--u)*32);height:calc(var(--u)*32);margin:calc(var(--u)*-16) 0 0 calc(var(--u)*-16);border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(0,0,0,.3);opacity:.75}
+#touch .zone{position:absolute;right:0;top:0;bottom:0;width:48%;pointer-events:auto;touch-action:none}
+/* The stick (look and aim) rests on the right, above the buttons, and jumps to wherever the thumb lands. */
+#stick{position:absolute;left:calc(100% - var(--u)*22);top:calc(100% - var(--u)*67);width:calc(var(--u)*32);height:calc(var(--u)*32);margin:calc(var(--u)*-16) 0 0 calc(var(--u)*-16);border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(0,0,0,.3);opacity:.75}
 #stick.on{opacity:1}
 #knob{position:absolute;left:50%;top:50%;width:calc(var(--u)*13);height:calc(var(--u)*13);margin:calc(var(--u)*-6.5) 0 0 calc(var(--u)*-6.5);border-radius:50%;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.5)}
 #touch .tb,#fs{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;padding:0;margin:0;border-radius:calc(var(--u)*2.6);border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:rgba(255,255,255,.9);font:italic 800 max(11px,calc(var(--u)*4.4))/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
 #touch .tb.on,#fs:active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
 #touch .pill{border-radius:999px}
 #touch .tb svg{width:30%;height:30%;fill:currentColor}
-/* Right side, one column from the bottom: Fire, Aim, B + A, then the C arrows (look and strafe). */
+/* Right side, from the bottom: Fire, Aim, B + A, with the stick above them. */
 #tFire{right:calc(var(--u)*3);bottom:calc(var(--u)*4);width:calc(var(--u)*38);height:calc(var(--u)*15)}
 #tAim{right:calc(var(--u)*3);bottom:calc(var(--u)*21);width:calc(var(--u)*38);height:calc(var(--u)*11)}
 #tA{right:calc(var(--u)*3);bottom:calc(var(--u)*34);width:calc(var(--u)*18.5);height:calc(var(--u)*11)}
 #tB{right:calc(var(--u)*22.5);bottom:calc(var(--u)*34);width:calc(var(--u)*18.5);height:calc(var(--u)*11)}
 #touch .sq{width:calc(var(--u)*12);height:calc(var(--u)*12)}
-#tCu{right:calc(var(--u)*16);bottom:calc(var(--u)*74)}
-#tCl{right:calc(var(--u)*29);bottom:calc(var(--u)*61)}
-#tCr{right:calc(var(--u)*3);bottom:calc(var(--u)*61)}
-#tCd{right:calc(var(--u)*16);bottom:calc(var(--u)*48)}
+/* Left side: the C arrows (walk and strafe). */
+#tCu{left:calc(var(--u)*16);bottom:calc(var(--u)*35)}
+#tCl{left:calc(var(--u)*3);bottom:calc(var(--u)*22)}
+#tCr{left:calc(var(--u)*29);bottom:calc(var(--u)*22)}
+#tCd{left:calc(var(--u)*16);bottom:calc(var(--u)*9)}
 #tCd svg{transform:rotate(180deg)}#tCl svg{transform:rotate(-90deg)}#tCr svg{transform:rotate(90deg)}
 /* Top-left: fullscreen, then Start. */
 #fs{left:calc(var(--u)*3);top:calc(var(--u)*3);z-index:3;width:max(34px,calc(var(--u)*10));height:max(34px,calc(var(--u)*10));display:none}
@@ -116,7 +117,7 @@ html.fill #canvas{width:100%;height:min(100%,75vw);max-height:none;aspect-ratio:
 <tr><td>Reload · crouch</td><td><kbd>R</kbd> · <kbd>C</kbd></td></tr>
 <tr><td>Start / pause watch</td><td><kbd>Enter</kbd></td></tr>
 </table>
-<p><small>An Xbox or PlayStation controller works too. On a phone or tablet, an N64 pad appears on screen: the left side is the stick (move and turn), ▲▼◀▶ are the C buttons (look and strafe). Settings live in the game's PC Options menu on the file-select screen; they and your save files stay in this browser.</small></p>
+<p><small>An Xbox or PlayStation controller works too. On a phone or tablet, an N64 pad appears on screen: the arrows on the left walk and strafe, and the right side of the screen is the stick (look and aim). Settings live in the game's PC Options menu on the file-select screen; they and your save files stay in this browser.</small></p>
 </details>
 <p id="hint"><small></small></p>
 </div>
