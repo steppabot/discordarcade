@@ -146,7 +146,7 @@ const ROM_NAME='ge007.ntsc-final.z64';
 const DATA=['pcmodels-ntsc-final/pcmodels.bin','pcmodels-ntsc-final/manifest.csv','pccg-ntsc-final/pccg.bin','pccg-ntsc-final/manifest.csv'];
 const SAVE_FILES={'ge007.eep':'token-gepc-eep','ge007.ini':'token-gepc-ini'};   // file in /data -> localStorage key
 const CACHE='token-gepc-v1';
-const BUILD='3';
+const BUILD='4';
 // Opened from the arcade's GoldenEye card: the N64 player URL to fall back to.
 const N64_URL=(()=>{try{const u=new URL(new URLSearchParams(location.search).get('n64')||'',location.href);
  return u.origin===location.origin&&u.pathname.endsWith('/arcade-player.html')?u.href:null;}catch{return null;}})();
