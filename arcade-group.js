@@ -71,6 +71,26 @@
   const PC_PAD = { 0: N64.A, 1: N64.B, 2: N64.B, 3: N64.A, 4: N64.R, 5: N64.Z, 6: N64.R, 7: N64.Z,
     9: N64.START, 12: N64.DU, 13: N64.DD, 14: N64.DL, 15: N64.DR };
 
+  // The WCW/nWo Revenge PC version (revenge-pc/), same keys as its own page: the
+  // d-pad moves, the stick taunts. Gamepad: left stick or d-pad moves, right stick
+  // taunts, A grapple, X strike, B run, Y climb, bumpers focus, triggers duck/block.
+  const RV_KEYS = {
+    KeyW: N64.DU, ArrowUp: N64.DU, KeyS: N64.DD, ArrowDown: N64.DD,
+    KeyA: N64.DL, ArrowLeft: N64.DL, KeyD: N64.DR, ArrowRight: N64.DR,
+    KeyJ: N64.A, KeyK: N64.B, KeyL: N64.R, ShiftLeft: N64.L, ShiftRight: N64.L,
+    Space: N64.CD, KeyI: N64.CU, KeyQ: N64.CL, KeyE: N64.CR, KeyZ: N64.Z, Enter: N64.START
+  };
+  const RV_TAUNT = { KeyT: [0, 1], KeyG: [0, -1], KeyF: [-1, 0], KeyH: [1, 0] };
+  const RV_PAD = { 0: N64.A, 1: N64.CD, 2: N64.B, 3: N64.CU, 4: N64.CL, 5: N64.CR, 6: N64.L, 7: N64.R,
+    8: N64.Z, 9: N64.START, 10: N64.Z, 12: N64.DU, 13: N64.DD, 14: N64.DL, 15: N64.DR };
+  const MOVE = N64.DU | N64.DD | N64.DL | N64.DR;
+  // A stick offset as d-pad directions (8 ways, small dead zone); y is screen-down.
+  function stickToDpad(dx, dy, radius) {
+    if (Math.hypot(dx, dy) < radius * 0.3) return 0;
+    const sector = Math.round(Math.atan2(-dy, dx) / (Math.PI / 4)) + 4; // 0..8, 4 = right
+    return [N64.DL, N64.DL | N64.DD, N64.DD, N64.DD | N64.DR, N64.DR, N64.DR | N64.DU, N64.DU, N64.DU | N64.DL, N64.DL][sector];
+  }
+
   const TOUCH = matchMedia("(pointer: coarse)").matches;
 
   // Where each player's view sits in GoldenEye's 4:3 frame (fractions),
@@ -273,6 +293,15 @@
     .tg-pad.classic .cl { left: auto; right: calc(var(--u) * 29); bottom: calc(var(--u) * 61); }
     .tg-pad.classic .cr { left: auto; right: calc(var(--u) * 3); bottom: calc(var(--u) * 61); }
     .tg-pad.classic .cd { left: auto; right: calc(var(--u) * 16); bottom: calc(var(--u) * 48); }
+    .tg-pad.rv .ga { right: calc(var(--u) * 3); bottom: calc(var(--u) * 4); width: calc(var(--u) * 19); height: calc(var(--u) * 14); }
+    .tg-pad.rv .st { right: calc(var(--u) * 24); bottom: calc(var(--u) * 4); width: calc(var(--u) * 19); height: calc(var(--u) * 14); }
+    .tg-pad.rv .bl { right: calc(var(--u) * 3); bottom: calc(var(--u) * 20); width: calc(var(--u) * 19); height: calc(var(--u) * 12); }
+    .tg-pad.rv .ru { right: calc(var(--u) * 24); bottom: calc(var(--u) * 20); width: calc(var(--u) * 19); height: calc(var(--u) * 12); }
+    .tg-pad.rv .du { right: calc(var(--u) * 3); bottom: calc(var(--u) * 34); width: calc(var(--u) * 19); height: calc(var(--u) * 9.5); }
+    .tg-pad.rv .cl2 { right: calc(var(--u) * 24); bottom: calc(var(--u) * 34); width: calc(var(--u) * 19); height: calc(var(--u) * 9.5); }
+    .tg-pad.rv .fo { right: calc(var(--u) * 3); bottom: calc(var(--u) * 45.5); width: calc(var(--u) * 19); height: calc(var(--u) * 9.5); }
+    .tg-pad.rv .ta { right: calc(var(--u) * 24); bottom: calc(var(--u) * 45.5); width: calc(var(--u) * 19); height: calc(var(--u) * 9.5); }
+    .tg-pad.rv .sm { font-size: max(10px, calc(var(--u) * 3.4)); }
     .tg-pad .cd svg { transform: rotate(180deg); } .tg-pad .cl svg { transform: rotate(-90deg); } .tg-pad .cr svg { transform: rotate(90deg); }
     .tg-pad .tg-fs { left: calc(var(--u) * 3); top: calc(var(--u) * 3); width: max(34px, calc(var(--u) * 10)); height: max(34px, calc(var(--u) * 10)); }
     .tg-pad .tg-fs svg { width: 55%; height: 55%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -289,8 +318,20 @@
   // N64 state on every change; onTouch() runs on each touch (sound unlock).
   function createPad(hostElement, layout, onChange, onTouch) {
     const pad = document.createElement("div");
-    pad.className = "tg-pad" + (layout === "classic" ? " classic" : "");
-    pad.innerHTML =
+    pad.className = "tg-pad" + (layout === "classic" ? " classic" : layout === "rv" ? " classic rv" : "");
+    pad.innerHTML = layout === "rv"
+      ? '<div class="tg-zone"><div class="tg-stick"><div class="tg-knob"></div></div></div>' +
+        `<button class="tg-fs" aria-label="Fullscreen">${FULLSCREEN_ICON}</button>` +
+        `<button class="pill start" data-b="${N64.START}">Start</button>` +
+        `<button class="pill ga" data-b="${N64.A}">Grapple</button>` +
+        `<button class="pill st" data-b="${N64.B}">Strike</button>` +
+        `<button class="pill bl" data-b="${N64.R}">Block</button>` +
+        `<button class="pill ru" data-b="${N64.CD}">Run</button>` +
+        `<button class="pill sm du" data-b="${N64.L}">Duck</button>` +
+        `<button class="pill sm cl2" data-b="${N64.CU}">Climb</button>` +
+        `<button class="pill sm fo" data-b="${N64.CR}">Focus</button>` +
+        `<button class="pill sm ta" data-b="0" data-ty="${STICK_MAX}">Taunt</button>`
+      :
       '<div class="tg-zone"><div class="tg-stick"><div class="tg-knob"></div></div></div>' +
       `<button class="tg-fs" aria-label="Fullscreen">${FULLSCREEN_ICON}</button>` +
       `<button class="pill start" data-b="${N64.START}">Start</button>` +
@@ -339,8 +380,12 @@
         dy *= radius / d;
       }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
-      state.x = Math.round(dx / radius * STICK_MAX);
-      state.y = Math.round(-dy / radius * STICK_MAX);
+      if (layout === "rv") {
+        state.n = (state.n & ~MOVE) | stickToDpad(dx, dy, radius);
+      } else {
+        state.x = Math.round(dx / radius * STICK_MAX);
+        state.y = Math.round(-dy / radius * STICK_MAX);
+      }
       changed();
     });
     const end = (event) => {
@@ -349,7 +394,8 @@
       stick.style.left = stick.style.top = "";
       stick.classList.remove("on");
       knob.style.transform = "";
-      state.x = state.y = 0;
+      if (layout === "rv") state.n &= ~MOVE;
+      else state.x = state.y = 0;
       changed();
     };
     zone.addEventListener("pointerup", end);
@@ -357,16 +403,19 @@
 
     for (const button of pad.querySelectorAll("button[data-b]")) {
       const bit = Number(button.dataset.b);
+      const ty = Number(button.dataset.ty || 0); // Revenge's Taunt: the stick pushed up
       button.addEventListener("pointerdown", (event) => {
         event.preventDefault();
         button.setPointerCapture?.(event.pointerId);
         button.classList.add("on");
         state.n |= bit;
+        if (ty) state.y = ty;
         changed();
       });
       const off = () => {
         button.classList.remove("on");
         state.n &= ~bit;
+        if (ty) state.y = 0;
         changed();
       };
       button.addEventListener("pointerup", off);
@@ -439,6 +488,11 @@
     "Keyboard: W A S D move · arrow keys look · Space fire · Shift aim · " +
     "Q = A (weapon, accept) · E = B (use, back) · Enter = Start. " +
     "Gamepad: left stick moves, right stick looks, triggers aim and fire.";
+
+  const RV_HELP =
+    "Keyboard: W A S D move · J grapple · K strike · L block · Space run · " +
+    "Shift duck · I climb · Q / E focus · T F G H taunt · Enter = Start. " +
+    "Gamepad: left stick moves, A grapple, X strike, B run, triggers duck and block.";
 
   // How each group game is shown and set up. Keys match games.json ids.
   //  view "split":  the game splits the screen; each player sees their part.
@@ -565,13 +619,19 @@
     };
   }
 
-  // The GoldenEye PC version (goldeneye-pc/), in a frame of its own under the
-  // shared view. The frame is always 960x720 inside, so every player's part of
-  // the split screen streams at 480x360 however big the host's window is; it
-  // is scaled to sit exactly under the view's picture.
+  // A native PC version (goldeneye-pc/, revenge-pc/), in a frame of its own under
+  // the shared view. The frame is always 960x720 inside, so every player's part of
+  // GoldenEye's split screen streams at 480x360 however big the host's window is;
+  // it is scaled to sit exactly under the view's picture. Both pages offer the
+  // same host API (window.geGroup).
   const PC_SIZE = [960, 720];
+  const PC_PORTS = {
+    goldeneye: { page: "goldeneye-pc/", title: "GoldenEye 007", engine: "pc" },
+    revenge: { page: "revenge-pc/", title: "WCW/nWo Revenge", engine: "rv" }
+  };
 
-  function pcEngine(container) {
+  function pcEngine(container, id = "goldeneye") {
+    const port = PC_PORTS[id] || PC_PORTS.goldeneye;
     let frame = null;
     let pad = null;
     const game = () => frame?.contentWindow?.geGroup;
@@ -587,7 +647,7 @@
     }
 
     return {
-      hello: { e: "pc" },
+      hello: { e: port.engine },
       bitrate: 3_000_000,
 
       async boot(onStart) {
@@ -595,9 +655,9 @@
           position: "absolute", width: PC_SIZE[0] + "px", height: PC_SIZE[1] + "px", transformOrigin: "0 0"
         });
         frame = document.createElement("iframe");
-        frame.src = "goldeneye-pc/?embed=1&group=host";
+        frame.src = port.page + "?embed=1&group=host";
         frame.allow = "autoplay; fullscreen; gamepad";
-        frame.title = "GoldenEye 007";
+        frame.title = port.title;
         frame.style.cssText = "display:block;width:100%;height:100%;border:0;background:#000";
         container.replaceChildren(frame);
         fit();
@@ -608,7 +668,7 @@
           const g = game();
           if (g?.error) throw new Error(g.error);
           if (g?.running) break;
-          if (waited > 300000) throw new Error("GoldenEye took too long to start. Try again.");
+          if (waited > 300000) throw new Error(port.title + " took too long to start. Try again.");
           await new Promise((resolve) => setTimeout(resolve, 200));
         }
         await onStart();
@@ -645,7 +705,7 @@
         document.addEventListener("keydown", resume, true);
         if (TOUCH) {
           view.view.classList.add("tg-touch");
-          pad = createPad(view.view, "pc", (s) => game()?.setPad(0, s.n, s.x, s.y), resume);
+          pad = createPad(view.view, port.engine, (s) => game()?.setPad(0, s.n, s.x, s.y), resume);
         } else {
           frame.focus();
         }
@@ -904,7 +964,7 @@
       keys.className = "tg-keys";
       // GoldenEye runs the PC version when the host's browser can, and its
       // controls differ; the game view shows the right ones once it starts.
-      keys.textContent = state.group.game === "goldeneye007"
+      keys.textContent = ["goldeneye007", "wcwvsnworevenge"].includes(state.group.game)
         ? "Keyboard, gamepad or the on-screen pad on phones: the controls show when the game starts."
         : CONTROLS_HELP;
 
@@ -1203,7 +1263,7 @@
       let seq = 0;
       let lastSent = "";
       let lastTime = 0;
-      let engine = "classic"; // "pc" once the host says it runs the GoldenEye PC version
+      let engine = "classic"; // "pc" / "rv" once the host says it runs the GoldenEye / Revenge PC version
       let pad = null;
       const keys = new Set();
 
@@ -1277,11 +1337,47 @@
         return { n, nx: clamp(nx), ny: clamp(ny) };
       }
 
+      // The Revenge PC version's mapping, as N64 state (see RV_KEYS).
+      function rvInput() {
+        let n = 0;
+        let nx = 0;
+        let ny = 0;
+
+        for (const code of keys) {
+          if (code in RV_KEYS) n |= RV_KEYS[code];
+          if (code in RV_TAUNT) {
+            nx += RV_TAUNT[code][0] * STICK_MAX;
+            ny += RV_TAUNT[code][1] * STICK_MAX;
+          }
+        }
+
+        for (const gp of navigator.getGamepads ? navigator.getGamepads() : []) {
+          if (!gp || !gp.connected) continue;
+          gp.buttons.forEach((button, index) => {
+            if ((button.pressed || button.value > 0.5) && index in RV_PAD) n |= RV_PAD[index];
+          });
+          const mx = gp.axes[0] || 0;
+          const my = gp.axes[1] || 0;
+          if (my < -0.5) n |= N64.DU;
+          if (my > 0.5) n |= N64.DD;
+          if (mx < -0.5) n |= N64.DL;
+          if (mx > 0.5) n |= N64.DR;
+          const dead = (v) => (Math.abs(v) < 0.2 ? 0 : v);
+          nx += dead(gp.axes[2] || 0) * STICK_MAX;
+          ny -= dead(gp.axes[3] || 0) * STICK_MAX;
+        }
+
+        const clamp = (v) => Math.round(Math.max(-STICK_MAX, Math.min(STICK_MAX, v)));
+        return { n, nx: clamp(nx), ny: clamp(ny) };
+      }
+
       // Both forms go out: an EmulatorJS host reads {b, x, y}, the PC host {n, nx, ny}.
       function input() {
         let state;
         if (engine === "pc") {
           state = pcInput();
+        } else if (engine === "rv") {
+          state = rvInput();
         } else {
           const c = classicInput();
           state = ejsToN64(c.b, c.x, c.y);
@@ -1312,7 +1408,9 @@
       const onKey = (event) => {
         const known = engine === "pc"
           ? event.code in PC_KEYS || event.code in PC_LOOK
-          : event.code in KEYS || event.code in STICK_KEYS;
+          : engine === "rv"
+            ? event.code in RV_KEYS || event.code in RV_TAUNT
+            : event.code in KEYS || event.code in STICK_KEYS;
         if (!known) return;
         event.preventDefault();
         if (event.type === "keydown") keys.add(event.code);
@@ -1339,13 +1437,13 @@
 
       // The host's hello: switch to its version's controls and help.
       function setEngine(next) {
-        if (next !== "pc" || engine === "pc") return;
-        engine = "pc";
+        if ((next !== "pc" && next !== "rv") || engine === next) return;
+        engine = next;
         keys.clear();
-        view?.help(PC_HELP);
+        view?.help(next === "pc" ? PC_HELP : RV_HELP);
         if (pad) {
           pad.destroy();
-          pad = createPad(view.view, "pc", tick, unmute);
+          pad = createPad(view.view, next, tick, unmute);
         }
       }
 
