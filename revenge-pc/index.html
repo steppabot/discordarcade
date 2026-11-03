@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Token · WCW/nWo Revenge PC</title>
+<title>Token · WCW/nWo Revenge</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}
 header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#c9b8ff}
@@ -133,7 +133,7 @@ if(GROUP)document.documentElement.classList.add('group');
 const ROM_URL='/games/n64/wcwvsnworevenge.z64', ROM_SIZE=16777216;
 const SAVE_KEY='token-revenge-sram';
 const CACHE='token-revenge-v1';
-const BUILD='1';
+const BUILD='2';
 // Opened from the arcade's Revenge card: the N64 player URL to fall back to.
 const N64_URL=(()=>{try{const u=new URL(new URLSearchParams(location.search).get('n64')||'',location.href);
  return u.origin===location.origin&&u.pathname.endsWith('/arcade-player.html')?u.href:null;}catch{return null;}})();
