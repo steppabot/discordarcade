@@ -2133,5 +2133,14 @@
     "url": "/games/n64/wcwvsnworevenge.z64",
     "icon": "/images/wcwvsnworevenge.jpg",
     "subtitle": "N64 · WRESTLING"
+  },
+  {
+    "id": "crazytaxi",
+    "title": "Crazy Taxi",
+    "type": "retro",
+    "core": "dreamcast",
+    "url": "/crazytaxi-pc/disc.json",
+    "icon": "/images/crazytaxi.jpg",
+    "subtitle": "DREAMCAST · DRIVING"
   }
 ]
