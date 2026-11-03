@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Token · Crazy Taxi PC</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}
+header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#c9b8ff}
+main{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;flex-direction:column}
+main>#panel{order:-1}
+button{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:0;background:#7c5cff;color:#fff;cursor:pointer}button:disabled{opacity:.5;cursor:default}
+button.ghost{background:#2a2350;border:1px solid #413652}
+#status{white-space:pre-wrap;min-height:1.4em}#status.err{color:#ff8f8f}
+#stage{display:none;background:#000;border-radius:8px;overflow:hidden;position:relative}
+#stage.on{display:flex;justify-content:center}
+#canvas{display:block;width:100%;aspect-ratio:4/3;max-height:calc(100vh - 160px);max-width:calc((100vh - 160px)*4/3);background:#000;outline:none}
+#stage:fullscreen{align-items:center}
+#stage:fullscreen #canvas{width:min(100vw,133.33vh);height:min(100vh,75vw);max-height:none;max-width:none;aspect-ratio:auto}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+progress{width:260px;height:10px}
+details{margin-top:14px;background:#1d1838;border:1px solid #413652;border-radius:10px;padding:10px 14px}summary{cursor:pointer;font-weight:700}
+table{border-collapse:collapse;margin-top:8px}td{padding:3px 14px 3px 0;color:#d9d2f0}kbd{background:#2a2350;border:1px solid #574a7a;border-radius:4px;padding:1px 6px;font-size:.9em}
+small{color:#b8afd6}
+/* Inside the arcade's game frame: the game fills the frame, controls sit in an overlay. */
+html.embed,html.embed body{height:100%;overflow:hidden;background:#000}
+html.embed header,html.embed .foot,html.embed #full{display:none}
+html.embed main{max-width:none;height:100%;padding:0;position:relative;display:block}
+html.embed #stage{align-items:center;position:absolute;inset:0;border-radius:0}
+html.embed #canvas,html.fill #canvas{width:min(100%,133.33vh);height:min(100%,75vw);max-height:none;max-width:none;aspect-ratio:auto}
+html.embed #panel{position:absolute;inset:0;z-index:2;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:12px;background:rgba(21,16,46,.94);text-align:center;font-size:14px}
+html.embed #panel .bar{justify-content:center;margin:4px 0}
+html.embed #panel #status{margin:6px 0}
+html.embed #panel details{text-align:left;max-width:520px;margin-top:6px;font-size:13px}
+html.embed #panel td{padding:1px 10px 1px 0}
+html.embed.running #panel{display:none}
+html.embed.running.err #panel{display:flex}
+/* Touch controls: a quiet pad in the NFSU2 style (monochrome outlines, italic labels). */
+#stage{--u:min(1vmin,4.4px)}
+#touch{position:absolute;inset:0;z-index:1;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#touch[hidden]{display:none}
+/* Left half steers: the stick rests bottom-left and jumps to wherever the thumb lands. */
+#touch .zone{position:absolute;left:0;top:0;bottom:0;width:46%;pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:calc(var(--u)*24);top:calc(100% - var(--u)*26);width:calc(var(--u)*32);height:calc(var(--u)*32);margin:calc(var(--u)*-16) 0 0 calc(var(--u)*-16);border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(0,0,0,.3);opacity:.75}
+#stick.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:calc(var(--u)*13);height:calc(var(--u)*13);margin:calc(var(--u)*-6.5) 0 0 calc(var(--u)*-6.5);border-radius:50%;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.5)}
+#touch .tb,#fs{position:absolute;pointer-events:auto;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;margin:0;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:rgba(255,255,255,.9);font:italic 800 max(11px,calc(var(--u)*4.4))/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
+#touch .tb small{font:italic 700 max(8px,calc(var(--u)*2.6))/1 system-ui,sans-serif;color:rgba(255,255,255,.65)}
+#touch .tb.on,#fs:active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
+/* Right side: Gas (big) and Brake, then the A and B buttons (menus; reverse and drive gears). */
+#tGas{right:calc(var(--u)*3);bottom:calc(var(--u)*4);width:calc(var(--u)*22);height:calc(var(--u)*30);border-radius:calc(var(--u)*5)}
+#tBrake{right:calc(var(--u)*28);bottom:calc(var(--u)*4);width:calc(var(--u)*17);height:calc(var(--u)*20);border-radius:calc(var(--u)*5)}
+#tA{right:calc(var(--u)*28);bottom:calc(var(--u)*28);width:calc(var(--u)*17);height:calc(var(--u)*11)}
+#tB{right:calc(var(--u)*3);bottom:calc(var(--u)*38);width:calc(var(--u)*22);height:calc(var(--u)*11)}
+/* Top-left: fullscreen, then Start. */
+#fs{left:calc(var(--u)*3);top:calc(var(--u)*3);z-index:3;width:max(34px,calc(var(--u)*10));height:max(34px,calc(var(--u)*10));border-radius:calc(var(--u)*2.6);display:none}
+#fs svg{width:55%;height:55%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#tStart{left:calc(var(--u)*5 + max(34px,calc(var(--u)*10)));top:calc(var(--u)*3);width:calc(var(--u)*19);height:max(34px,calc(var(--u)*10))}
+html.touch.running #fs,html.full #fs{display:flex}
+#fs .out,html.full #fs .in{display:none}html.full #fs .out{display:block}
+#hint{margin-top:6px}
+#turn{display:none;position:absolute;left:50%;top:calc(75vw + var(--u)*5);transform:translateX(-50%);z-index:3;pointer-events:none;padding:6px 12px;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:rgba(255,255,255,.9);font:italic 700 14px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap}
+@media (orientation:portrait){html.touch.full.running #turn{display:block}}
+@media (orientation:portrait){html.touch.embed #stage,html.touch.fill #stage,html.touch #stage:fullscreen{align-items:flex-start}}
+/* No element fullscreen (iPhone Safari): the game fills the page instead. */
+html.fill,html.fill body{height:100%;overflow:hidden}
+html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:10;border-radius:0}
+</style>
+</head>
+<body><header><strong>TOKEN · Crazy Taxi PC (beta)</strong><a href="/">Back to arcade</a></header>
+<main>
+<div id="stage"><canvas id="canvas" width="640" height="480" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+<div id="touch" hidden>
+ <div class="zone" id="zone"><div id="stick"><div id="knob"></div></div></div>
+ <button class="tb" id="tStart" data-b="8">Start</button>
+ <button class="tb" id="tGas" data-gas="1">Gas</button>
+ <button class="tb" id="tBrake" data-brake="1">Brake</button>
+ <button class="tb" id="tA" data-b="4">A<small>Reverse</small></button>
+ <button class="tb" id="tB" data-b="2">B<small>Drive</small></button>
+</div>
+<button id="fs" aria-label="Fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="in" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="out" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button>
+<div id="turn">Turn your phone sideways</div>
+</div>
+<div id="panel">
+<div class="bar"><button id="start" disabled>Start Crazy Taxi</button><button id="full" class="ghost" disabled>Fullscreen</button><progress id="prog" max="1" value="0" hidden></progress></div>
+<p id="status" role="status">Preparing browser…</p>
+<details open><summary>Controls</summary>
+<table>
+<tr><td>Steer</td><td><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></td></tr>
+<tr><td>Gas · Brake</td><td><kbd>↑</kbd> or <kbd>W</kbd> · <kbd>↓</kbd> or <kbd>S</kbd></td></tr>
+<tr><td>A (menu accept, reverse gear)</td><td><kbd>Z</kbd> or <kbd>J</kbd></td></tr>
+<tr><td>B (menu back, drive gear)</td><td><kbd>X</kbd> or <kbd>K</kbd></td></tr>
+<tr><td>X · Y</td><td><kbd>C</kbd> · <kbd>V</kbd></td></tr>
+<tr><td>Start / pause</td><td><kbd>Enter</kbd></td></tr>
+</table>
+<p><small>An Xbox or PlayStation controller works too: left stick steers, right trigger is gas, left trigger brakes. On a phone or tablet a pad appears on screen. The game (about 120 MB) downloads once and then loads from this browser.</small></p>
+</details>
+<p id="hint"><small></small></p>
+</div>
+<p class="foot"><small>Beta: the Dreamcast Crazy Taxi recompiled to WebAssembly with the <a href="https://github.com/dmikey/dreamcast-port-kit">Dreamcast Port Kit</a> (built on <a href="https://github.com/sp00nznet/dcrecomp">dcrecomp</a>), not a full emulator. Works in current Chrome, Edge, Firefox and Safari 17+. Sign in on the arcade first.</small></p>
+<p class="foot"><small id="sysinfo"></small></p>
+</main>
+<script src="runtime-bridge.js"></script><script src="audio.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const statusEl=$('status'),startButton=$('start'),fullButton=$('full'),prog=$('prog'),stage=$('stage'),canvas=$('canvas');
+const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const EMBED=window.top!==window.self;
+const TOUCH=matchMedia('(pointer: coarse)').matches;
+if(EMBED){document.documentElement.classList.add('embed');document.querySelector('details').open=false;}
+if(TOUCH)document.documentElement.classList.add('touch');
+const DEBUG=new URLSearchParams(location.search).has('debug');
+// The disc (disc.json + disc-0..5.bin) downloads from R2; a copy next to this page is the fallback.
+const DISC_R2='https://pub-e73f4622624449af92a3bfbd79f864d7.r2.dev/dreamcast/crazytaxi/';
+const DISC_BASES=[new URLSearchParams(location.search).get('disc')||DISC_R2,'./'];
+function show(t,err){statusEl.textContent=t;statusEl.classList.toggle('err',!!err);document.documentElement.classList.toggle('err',!!err);}
+function fail(t){show(t,true);}
+
+async function prepare(){
+ if(typeof WebAssembly!=='object'||typeof Worker==='undefined')throw new Error('This browser is too old for Crazy Taxi. Update it.');
+ if(typeof canvas.transferControlToOffscreen!=='function')throw new Error('This browser cannot draw the game from a worker (it needs OffscreenCanvas: Safari 17 or newer, or current Chrome, Edge or Firefox).');
+ const gl=document.createElement('canvas').getContext('webgl2');
+ if(!gl)throw new Error('This browser or device does not support WebGL 2, which Crazy Taxi needs.');
+ const dbg=gl.getExtension('WEBGL_debug_renderer_info');
+ const renderer=String(dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER));
+ const ua=navigator.userAgent;
+ const browser=(ua.match(/(Edg|OPR|Firefox|Chrome|Version)\/(\d+)/)||[]).slice(1).join(' ').replace(/^Edg/,'Edge').replace(/^OPR/,'Opera').replace(/^Version/,'Safari')||'unknown browser';
+ $('sysinfo').textContent='Running on: '+browser+' · '+renderer+' · '+(navigator.hardwareConcurrency||'?')+' CPU threads';
+ if(/swiftshader|basic render|llvmpipe|software/i.test(renderer))show('Warning: hardware graphics acceleration is off in this browser, so the game will be slow. Turn it on in the browser settings (System › Use graphics acceleration).',true);
+ if(!LOCAL){
+  show('Checking premium access…');
+  const access=await fetch('https://api.discordarcade.com/api/arcade/access',{credentials:'include',cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!access.ok)throw new Error('Access check failed ('+access.status+').');
+  if((await access.json()).allowed!==true)throw new Error('Sign in on the main arcade with premium access, then return here.');
+ }
+ if(TOUCH)$('hint').firstChild.textContent='Turn your phone sideways. The on-screen pad appears when the game starts.';
+ return true;
+}
+
+// ---- Controls ------------------------------------------------------------------------
+// Dreamcast pad bits (as the runtime takes them): Start 8, A 4, B 2, X 1024, Y 512,
+// d-pad up 16, down 32, left 64, right 128. Triggers 0..255, stick -128..127.
+const D={START:8,A:4,B:2,X:1024,Y:512,UP:16,DOWN:32,LEFT:64,RIGHT:128};
+const KEYS={Enter:D.START,NumpadEnter:D.START,KeyZ:D.A,KeyJ:D.A,KeyX:D.B,KeyK:D.B,KeyC:D.X,KeyV:D.Y,
+ ArrowUp:D.UP,ArrowDown:D.DOWN,ArrowLeft:D.LEFT,ArrowRight:D.RIGHT,KeyW:D.UP,KeyS:D.DOWN,KeyA:D.LEFT,KeyD:D.RIGHT};
+const held=new Set(),touch={b:0,x:0,y:0,gas:0,brake:0};
+let runtime=null,sent='';
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(KEYS[e.code]===undefined)return;e.preventDefault();held.add(e.code);sendPad();},true);
+addEventListener('keyup',e=>{if(KEYS[e.code]===undefined)return;held.delete(e.code);sendPad();},true);
+addEventListener('blur',()=>{held.clear();sendPad();});
+function readGamepad(){
+ for(const g of (navigator.getGamepads?navigator.getGamepads():[])){
+  if(!g||!g.connected||g.mapping!=='standard')continue;
+  const p=i=>g.buttons[i]&&(g.buttons[i].pressed||g.buttons[i].value>0.5);
+  let b=0;
+  if(p(0))b|=D.A;if(p(1))b|=D.B;if(p(2))b|=D.X;if(p(3))b|=D.Y;if(p(9))b|=D.START;
+  if(p(12))b|=D.UP;if(p(13))b|=D.DOWN;if(p(14))b|=D.LEFT;if(p(15))b|=D.RIGHT;
+  const dead=v=>Math.abs(v)<0.12?0:v;
+  return {b,x:Math.round(dead(g.axes[0]||0)*127),y:Math.round(dead(g.axes[1]||0)*127),
+   gas:Math.round((g.buttons[7]?.value||0)*255),brake:Math.round((g.buttons[6]?.value||0)*255)};
+ }
+ return null;
+}
+function sendPad(){
+ if(!runtime||!runtime.ready)return;
+ let b=touch.b,x=touch.x,y=touch.y,gas=touch.gas,brake=touch.brake;
+ for(const c of held)b|=KEYS[c];
+ if(held.has('ArrowUp')||held.has('KeyW'))gas=255;
+ if(held.has('ArrowDown')||held.has('KeyS'))brake=255;
+ const gp=readGamepad();
+ if(gp){b|=gp.b;if(gp.x)x=gp.x;if(gp.y)y=gp.y;gas=Math.max(gas,gp.gas);brake=Math.max(brake,gp.brake);}
+ if(!x){if(b&D.LEFT)x-=127;if(b&D.RIGHT)x+=127;}
+ x=Math.max(-128,Math.min(127,x));y=Math.max(-128,Math.min(127,y));
+ const key=b+','+gas+','+brake+','+x+','+y;
+ if(key===sent)return;sent=key;
+ runtime.bits=b;runtime.axes(brake,gas,x,y);
+}
+
+// On-screen pad: the left half steers (and works the menus as a d-pad), Gas and Brake on the right.
+function startTouch(){
+ const zone=$('zone'),stick=$('stick'),knob=$('knob');
+ let sid=null,ox=0,oy=0,R=55;
+ zone.addEventListener('pointerdown',e=>{if(sid!==null)return;sid=e.pointerId;zone.setPointerCapture(sid);
+  const r=zone.getBoundingClientRect();ox=e.clientX;oy=e.clientY;R=Math.max(30,stick.offsetWidth*.42);
+  stick.style.left=(ox-r.left)+'px';stick.style.top=(oy-r.top)+'px';stick.classList.add('on');knob.style.transform='';e.preventDefault();});
+ zone.addEventListener('pointermove',e=>{if(e.pointerId!==sid)return;
+  let dx=e.clientX-ox,dy=e.clientY-oy;const d=Math.hypot(dx,dy);if(d>R){dx*=R/d;dy*=R/d;}
+  knob.style.transform=`translate(${dx}px,${dy}px)`;
+  touch.x=Math.round(dx/R*127);touch.y=Math.round(dy/R*127);
+  touch.b&=~(D.UP|D.DOWN);if(dy<-R*.6)touch.b|=D.UP;if(dy>R*.6)touch.b|=D.DOWN;
+  sendPad();});
+ const end=e=>{if(e.pointerId!==sid)return;sid=null;stick.style.left=stick.style.top='';stick.classList.remove('on');knob.style.transform='';touch.x=touch.y=0;touch.b&=~(D.UP|D.DOWN);sendPad();};
+ zone.addEventListener('pointerup',end);zone.addEventListener('pointercancel',end);
+ for(const btn of document.querySelectorAll('#touch .tb')){
+  const bit=Number(btn.dataset.b||0),gas=!!btn.dataset.gas,brake=!!btn.dataset.brake;
+  const on=e=>{e.preventDefault();btn.setPointerCapture?.(e.pointerId);btn.classList.add('on');touch.b|=bit;if(gas)touch.gas=255;if(brake)touch.brake=255;sendPad();};
+  const off=()=>{btn.classList.remove('on');touch.b&=~bit;if(gas)touch.gas=0;if(brake)touch.brake=0;sendPad();};
+  btn.addEventListener('pointerdown',on);btn.addEventListener('pointerup',off);btn.addEventListener('pointercancel',off);
+  btn.addEventListener('contextmenu',e=>e.preventDefault());
+ }
+ $('touch').hidden=false;
+}
+
+// The game shows once both the code and the disc are ready (the disc downloads the first time).
+let wasmDone=false,discDone=false,shown=false;
+function running(){
+ if(!wasmDone||!discDone||shown)return;shown=true;
+ show(TOUCH?'Running.':'Running. Click the game, then drive with the keyboard or a controller.');
+ document.documentElement.classList.add('running');document.querySelector('details').open=false;canvas.focus();if(!EMBED)stage.scrollIntoView({block:'nearest'});
+ if(TOUCH)startTouch();
+}
+async function start(){
+ startButton.disabled=true;
+ try{
+  portAudio.start().catch(e=>console.warn('Sound could not start:',e));   // this click is the gesture sound needs
+  stage.classList.add('on');fullButton.disabled=false;
+  show('Starting…');
+  runtime=new PortWorkerRuntime(canvas,{
+   discBase:DISC_BASES.map(b=>new URL(b,location.href).href),
+   discProgress:d=>{if(d.got<d.total){prog.hidden=false;prog.value=d.got/d.total;show('Downloading Crazy Taxi… '+Math.round(d.got/d.total*100)+'%');}},
+   discReady:()=>{prog.hidden=true;discDone=true;running();},
+   ready:()=>{
+    wasmDone=true;running();
+    const loop=()=>{sendPad();requestAnimationFrame(loop);};requestAnimationFrame(loop);
+   },
+   log:t=>{if(DEBUG)console.log(t);else if(/\[DISC\] read failed|abort|error/i.test(t))console.warn(t);},
+   audio:samples=>portAudio.push(samples),
+   error:m=>fail('The game stopped: '+m+'\nReload the page to restart.'),
+   vmu:d=>{if(DEBUG||d.error)console.log('[VMU]',d.kind,d.message||d.error||'');},
+  });
+  runtime.start();
+  const resume=()=>{if(portAudio.context&&portAudio.context.state!=='running')portAudio.context.resume().catch(()=>{});};
+  for(const t of ['pointerdown','keydown'])addEventListener(t,resume,true);
+  document.addEventListener('visibilitychange',()=>runtime.pause(document.hidden));
+ }catch(e){console.error(e);fail(e.message);startButton.disabled=false;}
+}
+
+// Fullscreen: the real thing where the browser allows it (computers, Android, iPad).
+// iPhone Safari only lets videos go fullscreen, so there the game fills the page
+// instead; inside the arcade, the arcade page does that for its frame.
+const fsTarget=EMBED?document.documentElement:stage;
+const fsElement=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+let filled=false;
+function syncFull(){
+ const on=!!fsElement()||filled;
+ document.documentElement.classList.toggle('full',on);
+ const label=on?'Exit fullscreen':'Fullscreen';$('fs').title=label;$('fs').setAttribute('aria-label',label);
+}
+function setFilled(on){
+ if(EMBED){parent.postMessage({type:'token-fullscreen',on},location.origin);return;}
+ filled=on;document.documentElement.classList.toggle('fill',on);syncFull();
+}
+addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==parent||e.data?.type!=='token-fullscreen')return;
+ filled=!!e.data.on;syncFull();
+});
+document.addEventListener('fullscreenchange',syncFull);document.addEventListener('webkitfullscreenchange',syncFull);
+async function toggleFull(){
+ if(fsElement()){try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch{}return;}
+ if(filled){setFilled(false);return;}
+ const req=fsTarget.requestFullscreen||fsTarget.webkitRequestFullscreen;
+ if(req&&(document.fullscreenEnabled||document.webkitFullscreenEnabled)){
+  try{
+   await req.call(fsTarget,{navigationUI:'hide'});
+   if(TOUCH)screen.orientation?.lock?.('landscape')?.catch(()=>{});
+   canvas.focus();return;
+  }catch{}
+ }
+ setFilled(true);
+}
+$('fs').addEventListener('pointerdown',e=>e.preventDefault());
+$('fs').onclick=toggleFull;
+fullButton.onclick=toggleFull;
+startButton.onclick=start;
+
+prepare().then(ok=>{if(!ok)return;startButton.disabled=false;if(!statusEl.classList.contains('err'))show('Ready. Press Start (the game downloads once, about 120 MB).');})
+ .catch(e=>{console.error(e);fail(e.message);});
+</script>
+</body></html>
