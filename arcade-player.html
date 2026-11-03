@@ -356,15 +356,22 @@
     // included). Returns the version's id, or null.
     const PC_PORTS = {
       "/games/n64/goldeneye007.z64": { id: "goldeneye", page: "goldeneye-pc/" },
-      "/games/n64/wcwvsnworevenge.z64": { id: "revenge", page: "revenge-pc/" }
+      "/games/n64/wcwvsnworevenge.z64": { id: "revenge", page: "revenge-pc/" },
+      // Crazy Taxi: Dreamcast recompiled to WebAssembly. One player, so groups
+      // open it the same way as solo play, and there is no emulator fallback.
+      "/crazytaxi-pc/disc.json": { id: "crazytaxi", page: "crazytaxi-pc/", core: "dreamcast", solo: true }
     };
 
     function pcPortAvailable(core, url) {
-      if (params.get("pc") === "0") return null;
-      if (!["n64", "mupen64plus_next", "parallel-n64"].includes(core)) return null;
       const port = PC_PORTS[new URL(url).pathname];
       if (!port) return null;
-      if (typeof BigInt64Array === "undefined") return null;
+      if (port.core) {
+        if (core !== port.core) return null;
+      } else {
+        if (params.get("pc") === "0") return null;
+        if (!["n64", "mupen64plus_next", "parallel-n64"].includes(core)) return null;
+        if (typeof BigInt64Array === "undefined") return null;
+      }
 
       try {
         return document.createElement("canvas").getContext("webgl2") ? port : null;
@@ -396,7 +403,7 @@
         // Multiplayer group: the lobby decides who runs the emulator.
         const group = params.get("group");
 
-        if (group && /^[A-Za-z0-9_-]{8,24}$/.test(group)) {
+        if (group && /^[A-Za-z0-9_-]{8,24}$/.test(group) && !pcPortAvailable(core, url)?.solo) {
           await loadScript("arcade-group.js");
 
           await window.TokenGroup.start({
@@ -426,7 +433,7 @@
 
           n64.searchParams.set("pc", "0");
           pc.searchParams.set("embed", "1");
-          pc.searchParams.set("n64", n64.href);
+          if (!port.core) pc.searchParams.set("n64", n64.href);
           location.replace(pc.href);
           return;
         }
