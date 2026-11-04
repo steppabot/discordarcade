@@ -302,7 +302,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  var f = "game-3eb84bd7efc7771f.wasm";
+  var f = "game-dbbe5dbcd444353e.wasm";
   if (!isDataURI(f)) {
     return locateFile(f);
   }
