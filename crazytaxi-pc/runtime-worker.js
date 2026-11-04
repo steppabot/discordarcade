@@ -8,6 +8,14 @@
 // parts download once and stay in Cache Storage.
 let portDisc=null,portDiscReady=null;
 const PORT_DISC_CACHE='token-crazytaxi-disc-';
+// Game code: fetch, and unpack when gzip-compressed (magic 1f 8b; a server may already have).
+async function portLoadWasm(url){
+ const response=await fetch(url);
+ if(!response.ok)throw new Error('download failed ('+response.status+')');
+ const bytes=new Uint8Array(await response.arrayBuffer());
+ if(bytes[0]!==0x1f||bytes[1]!==0x8b)return bytes;
+ return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+}
 // Try each disc location in order (R2 first, then the copy next to the page).
 async function portLoadDiscFirst(bases){
  const errors=[];
@@ -95,9 +103,16 @@ self.onmessage=event=>{
     onRuntimeInitialized:()=>{ready=true;postMessage({kind:'ready',build:typeof portSelectedBuild==='undefined'?null:portSelectedBuild});applyInput();},
     onAbort:fail,onExit:code=>{if(code)fail('Worker runtime exited with code '+code);},
     portAudioPush:samples=>postMessage({kind:'audio',samples},[samples.buffer]),
-    portBrowserYield:async(delay=0)=>{flushLogs();if(paused)await new Promise(resolve=>resumeWorker=resolve);return delay>0?portBrowserScheduler.idle():portBrowserScheduler.yield();}
+    portBrowserYield:async(delay=0)=>{flushLogs();if(paused)await new Promise(resolve=>resumeWorker=resolve);return delay>0?portBrowserScheduler.idle():portBrowserScheduler.yield();},
+    // The game code is fetched here (runtime-loader.js names the file); it ships gzip-compressed (11-25 MB -> 3-4 MB).
+    instantiateWasm:(imports,receive)=>{
+     const file=typeof portSelectedBuild!=='undefined'&&portSelectedBuild.wasmFile;
+     if(!file){fail('runtime-loader.js names no wasmFile for this build.');return {};}
+     portLoadWasm(new URL(file,self.location.href).href).then(bytes=>WebAssembly.instantiate(bytes,imports)).then(r=>receive(r.instance,r.module)).catch(error=>fail('Could not load the game code: '+(error.message||error)));
+     return {};
+    }
    };
-   importScripts('vmu-format.js','vmu-storage.js','vmu-transport.js','browser-scheduler.js','runtime-loader.js');
+   importScripts(...['vmu-format.js','vmu-storage.js','vmu-transport.js','browser-scheduler.js','runtime-loader.js'].map(f=>f+self.location.search));
   }catch(error){fail(error.stack||error.message||error);}
  }else if(data.kind==='pause'&&ready){
   paused=!!data.value;if(paused){cancelReplay();endPulse();if(benchmarkTimer!==null){clearTimeout(benchmarkTimer);benchmarkTimer=null;log('[BENCHMARK] cancelled by pause');}}else if(resumeWorker){const resume=resumeWorker;resumeWorker=null;resume();}log('[RUNTIME] '+(paused?'paused':'resumed'));
