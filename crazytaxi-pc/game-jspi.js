@@ -302,7 +302,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  var f = "game-51afb8bdbb3e7c02.wasm";
+  var f = "game-5561ada0daebfb0a.wasm";
   if (!isDataURI(f)) {
     return locateFile(f);
   }
@@ -4224,8 +4224,6 @@ var _glCreateShader = shaderType => {
   return id;
 };
 
-var _glCullFace = x0 => GLctx.cullFace(x0);
-
 var _glDeleteBuffers = (n, buffers) => {
   for (var i = 0; i < n; i++) {
     var id = HEAP32[(((buffers) + (i * 4)) >> 2)];
@@ -4695,22 +4693,17 @@ var _glTexImage2D = (target, level, internalFormat, width, height, border, forma
 
 var _glTexParameteri = (x0, x1, x2) => GLctx.texParameteri(x0, x1, x2);
 
-var _glTexStorage2D = (x0, x1, x2, x3, x4) => GLctx.texStorage2D(x0, x1, x2, x3, x4);
+var _glTexStorage3D = (x0, x1, x2, x3, x4, x5) => GLctx.texStorage3D(x0, x1, x2, x3, x4, x5);
 
-var _glTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, type, pixels) => {
-  if (true) {
-    if (GLctx.currentPixelUnpackBufferBinding) {
-      GLctx.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
-      return;
-    }
-    if (pixels) {
-      var heap = heapObjectForWebGLType(type);
-      GLctx.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, heap, toTypedArrayIndex(pixels, heap));
-      return;
-    }
+var _glTexSubImage3D = (target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) => {
+  if (GLctx.currentPixelUnpackBufferBinding) {
+    GLctx.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+  } else if (pixels) {
+    var heap = heapObjectForWebGLType(type);
+    GLctx.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, heap, toTypedArrayIndex(pixels, heap));
+  } else {
+    GLctx.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, null);
   }
-  var pixelData = pixels ? emscriptenWebGLGetTexPixelData(type, format, width, height, pixels, 0) : null;
-  GLctx.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixelData);
 };
 
 var webglGetUniformLocation = location => {
@@ -4745,6 +4738,10 @@ var _glUseProgram = program => {
   // Record the currently active program so that we can access the uniform
   // mapping table of that program.
   GLctx.currentProgram = program;
+};
+
+var _glVertexAttribIPointer = (index, size, type, stride, ptr) => {
+  GLctx.vertexAttribIPointer(index, size, type, stride, ptr);
 };
 
 var _glVertexAttribPointer = (index, size, type, normalized, stride, ptr) => {
@@ -4907,7 +4904,6 @@ var wasmImports = {
   /** @export */ glCompileShader: _glCompileShader,
   /** @export */ glCreateProgram: _glCreateProgram,
   /** @export */ glCreateShader: _glCreateShader,
-  /** @export */ glCullFace: _glCullFace,
   /** @export */ glDeleteBuffers: _glDeleteBuffers,
   /** @export */ glDeleteProgram: _glDeleteProgram,
   /** @export */ glDeleteShader: _glDeleteShader,
@@ -4937,11 +4933,12 @@ var wasmImports = {
   /** @export */ glShaderSource: _glShaderSource,
   /** @export */ glTexImage2D: _glTexImage2D,
   /** @export */ glTexParameteri: _glTexParameteri,
-  /** @export */ glTexStorage2D: _glTexStorage2D,
-  /** @export */ glTexSubImage2D: _glTexSubImage2D,
+  /** @export */ glTexStorage3D: _glTexStorage3D,
+  /** @export */ glTexSubImage3D: _glTexSubImage3D,
   /** @export */ glUniform1i: _glUniform1i,
   /** @export */ glUniform2f: _glUniform2f,
   /** @export */ glUseProgram: _glUseProgram,
+  /** @export */ glVertexAttribIPointer: _glVertexAttribIPointer,
   /** @export */ glVertexAttribPointer: _glVertexAttribPointer,
   /** @export */ glViewport: _glViewport,
   /** @export */ port_audio_submit,
@@ -4989,7 +4986,7 @@ var __emscripten_stack_alloc = a0 => (__emscripten_stack_alloc = wasmExports["_e
 
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports["emscripten_stack_get_current"])();
 
-var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1909724;
+var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910572;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
