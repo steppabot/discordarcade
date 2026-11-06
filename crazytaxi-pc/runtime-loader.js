@@ -1,7 +1,7 @@
 /* Generated bundle identities; older browsers keep the Asyncify build. */
 'use strict';
 {
- const builds={"asyncify": {"loader": "game.js", "suspension": "asyncify", "wasmSHA256": "23d0921f20e33ee080180c001150fe6cad79e9bdf1ce4fa2c171695ece328c20", "wasmFile": "game-23d0921f20e33ee0.wasm.gz"}, "jspi": {"loader": "game-jspi.js", "suspension": "jspi", "wasmSHA256": "6209636eec93585888865da5a17b6912135f68cb521eca39c0f601add4bc7e1e", "wasmFile": "game-jspi-6209636eec935858.wasm.gz"}};
+ const builds={"asyncify": {"loader": "game.js", "suspension": "asyncify", "wasmSHA256": "6c1fc629cc6adfa769fa7770c1203f715b78f8af6914799d447454200511e69a", "wasmFile": "game-6c1fc629cc6adfa7.wasm.gz"}, "jspi": {"loader": "game-jspi.js", "suspension": "jspi", "wasmSHA256": "799cd13902b137bba0f90a4ec134d71a088ba4c53c25075fd5015022e0ad52d3", "wasmFile": "game-jspi-799cd13902b137bb.wasm.gz"}};
  const nativeStack=typeof WebAssembly.Suspending==='function'&&typeof WebAssembly.promising==='function';
  self.portSelectedBuild=nativeStack&&builds.jspi?builds.jspi:builds.asyncify;
  if(!self.portSelectedBuild)throw new Error('Missing browser build configuration. Rebuild this project.');

@@ -134,6 +134,7 @@ self.onmessage=event=>{
  else if(data.kind==='capture-snapshot'&&ready&&Module._port_render_snapshot)Module._port_render_snapshot();
  else if(data.kind==='capture-vram'&&ready&&Module._port_vram_capture)Module._port_vram_capture();
  else if(data.kind==='capture-frame'&&ready&&Module._port_frame_capture)Module._port_frame_capture();
+ else if(data.kind==='rc-verify'&&ready&&Module._port_set_rc_verify)Module._port_set_rc_verify(data.value?1:0);
  else if(data.kind==='input'){
   if(!Array.isArray(data.values)||data.values.length!==5||!data.values.every(Number.isFinite))return;
   cancelReplay();if(pulseTimer!==null)endPulse();

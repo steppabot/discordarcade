@@ -302,7 +302,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  var f = "game-5561ada0daebfb0a.wasm";
+  var f = "game-1118ce9423357f75.wasm";
   if (!isDataURI(f)) {
     return locateFile(f);
   }
@@ -4312,6 +4312,10 @@ var _glDrawArrays = (mode, first, count) => {
   GLctx.drawArrays(mode, first, count);
 };
 
+var _glDrawElements = (mode, count, type, indices) => {
+  GLctx.drawElements(mode, count, type, indices);
+};
+
 var _glEnable = x0 => GLctx.enable(x0);
 
 var _glEnableVertexAttribArray = index => {
@@ -4914,6 +4918,7 @@ var wasmImports = {
   /** @export */ glDepthMask: _glDepthMask,
   /** @export */ glDisable: _glDisable,
   /** @export */ glDrawArrays: _glDrawArrays,
+  /** @export */ glDrawElements: _glDrawElements,
   /** @export */ glEnable: _glEnable,
   /** @export */ glEnableVertexAttribArray: _glEnableVertexAttribArray,
   /** @export */ glFenceSync: _glFenceSync,
@@ -4956,6 +4961,8 @@ createWasm();
 
 var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports["__wasm_call_ctors"])();
 
+var _port_set_rc_verify = Module["_port_set_rc_verify"] = a0 => (_port_set_rc_verify = Module["_port_set_rc_verify"] = wasmExports["port_set_rc_verify"])(a0);
+
 var _free = a0 => (_free = wasmExports["free"])(a0);
 
 var _port_button = Module["_port_button"] = (a0, a1) => (_port_button = Module["_port_button"] = wasmExports["port_button"])(a0, a1);
@@ -4986,7 +4993,7 @@ var __emscripten_stack_alloc = a0 => (__emscripten_stack_alloc = wasmExports["_e
 
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports["emscripten_stack_get_current"])();
 
-var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910572;
+var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910700;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===

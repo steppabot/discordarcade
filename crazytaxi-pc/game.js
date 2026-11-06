@@ -302,7 +302,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  var f = "game-c19b6d269cb19b8c.wasm";
+  var f = "game-4bcc9fcf64889f03.wasm";
   if (!isDataURI(f)) {
     return locateFile(f);
   }
@@ -4286,6 +4286,10 @@ var _glDrawArrays = (mode, first, count) => {
   GLctx.drawArrays(mode, first, count);
 };
 
+var _glDrawElements = (mode, count, type, indices) => {
+  GLctx.drawElements(mode, count, type, indices);
+};
+
 var _glEnable = x0 => GLctx.enable(x0);
 
 var _glEnableVertexAttribArray = index => {
@@ -5064,6 +5068,7 @@ var wasmImports = {
   /** @export */ glDepthMask: _glDepthMask,
   /** @export */ glDisable: _glDisable,
   /** @export */ glDrawArrays: _glDrawArrays,
+  /** @export */ glDrawElements: _glDrawElements,
   /** @export */ glEnable: _glEnable,
   /** @export */ glEnableVertexAttribArray: _glEnableVertexAttribArray,
   /** @export */ glFenceSync: _glFenceSync,
@@ -5105,6 +5110,8 @@ var wasmExports;
 createWasm();
 
 var ___wasm_call_ctors = () => (___wasm_call_ctors = wasmExports["__wasm_call_ctors"])();
+
+var _port_set_rc_verify = Module["_port_set_rc_verify"] = a0 => (_port_set_rc_verify = Module["_port_set_rc_verify"] = wasmExports["port_set_rc_verify"])(a0);
 
 var _free = a0 => (_free = wasmExports["free"])(a0);
 
@@ -5158,7 +5165,7 @@ var _asyncify_start_rewind = a0 => (_asyncify_start_rewind = wasmExports["asynci
 
 var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports["asyncify_stop_rewind"])();
 
-var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910572;
+var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910700;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
