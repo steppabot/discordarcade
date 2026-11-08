@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Token · NFL Blitz PC</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui;background:#15102e;color:#f4f1fc}*{box-sizing:border-box}body{margin:0}
+header{padding:14px 20px;border-bottom:1px solid #413652;display:flex;gap:16px;align-items:center}a{color:#c9b8ff}
+main{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;flex-direction:column}
+main>#panel{order:-1}
+button{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:0;background:#7c5cff;color:#fff;cursor:pointer}button:disabled{opacity:.5;cursor:default}
+button.ghost{background:#2a2350;border:1px solid #413652}
+#status{white-space:pre-wrap;min-height:1.4em}#status.err{color:#ff8f8f}
+#stage{display:none;background:#000;border-radius:8px;overflow:hidden;position:relative}
+#stage.on{display:flex;justify-content:center}
+#stats{position:absolute;left:6px;top:6px;z-index:5;padding:3px 6px;border-radius:4px;background:rgba(0,0,0,.6);color:#9f9;font:12px/1.3 ui-monospace,Menlo,Consolas,monospace;pointer-events:none;white-space:pre}
+#canvas{display:block;width:100%;aspect-ratio:4/3;max-height:calc(100vh - 160px);max-width:calc((100vh - 160px)*4/3);background:#000;outline:none}
+#stage:fullscreen{align-items:center}
+#stage:fullscreen #canvas{width:min(100vw,133.33vh);height:min(100vh,75vw);max-height:none;max-width:none;aspect-ratio:auto}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+progress{width:260px;height:10px}
+details{margin-top:14px;background:#1d1838;border:1px solid #413652;border-radius:10px;padding:10px 14px}summary{cursor:pointer;font-weight:700}
+table{border-collapse:collapse;margin-top:8px}td{padding:3px 14px 3px 0;color:#d9d2f0}kbd{background:#2a2350;border:1px solid #574a7a;border-radius:4px;padding:1px 6px;font-size:.9em}
+small{color:#b8afd6}
+/* Inside the arcade's game frame: the game fills the frame, controls sit in an overlay. */
+html.embed,html.embed body{height:100%;overflow:hidden;background:#000}
+html.embed header,html.embed .foot,html.embed #full{display:none}
+html.embed main{max-width:none;height:100%;padding:0;position:relative;display:block}
+html.embed #stage{align-items:center;position:absolute;inset:0;border-radius:0}
+html.embed #canvas,html.fill #canvas{width:min(100%,133.33vh);height:min(100%,75vw);max-height:none;max-width:none;aspect-ratio:auto}
+html.embed #panel{position:absolute;inset:0;z-index:2;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:12px;background:rgba(21,16,46,.94);text-align:center;font-size:14px}
+html.embed #panel .bar{justify-content:center;margin:4px 0}
+html.embed #panel #status{margin:6px 0}
+html.embed #panel details{text-align:left;max-width:520px;margin-top:6px;font-size:13px}
+html.embed #panel td{padding:1px 10px 1px 0}
+html.embed.running #panel{display:none}
+html.embed.running.err #panel{display:flex}
+/* Touch controls: a quiet pad (monochrome outlines, italic labels), sized from
+   the screen's short side and capped so tablets get phone-sized buttons. */
+#stage{--u:min(1vmin,4.4px)}
+#touch{position:absolute;inset:0;z-index:1;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#touch[hidden]{display:none}
+/* Left half: the analog stick that moves your player. It rests bottom-left and jumps to wherever the thumb lands. */
+#touch .zone{position:absolute;left:0;top:0;bottom:0;width:46%;pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:calc(var(--u)*24);top:calc(100% - var(--u)*26);width:calc(var(--u)*32);height:calc(var(--u)*32);margin:calc(var(--u)*-16) 0 0 calc(var(--u)*-16);border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(0,0,0,.3);opacity:.75}
+#stick.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:calc(var(--u)*13);height:calc(var(--u)*13);margin:calc(var(--u)*-6.5) 0 0 calc(var(--u)*-6.5);border-radius:50%;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.5)}
+#touch .tb,#fs{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;padding:0;margin:0;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:rgba(255,255,255,.9);font:italic 800 max(11px,calc(var(--u)*4.2))/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}
+#touch .tb.on,#fs:active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
+#touch .sm{font-size:max(10px,calc(var(--u)*3.4))}
+/* Right side, two columns from the bottom: A + B, then Z + C-down, then L + R. */
+#tA{right:calc(var(--u)*3);bottom:calc(var(--u)*4);width:calc(var(--u)*19);height:calc(var(--u)*14)}
+#tB{right:calc(var(--u)*24);bottom:calc(var(--u)*4);width:calc(var(--u)*19);height:calc(var(--u)*14)}
+#tR{right:calc(var(--u)*3);bottom:calc(var(--u)*20);width:calc(var(--u)*19);height:calc(var(--u)*12)}
+#tRun{right:calc(var(--u)*24);bottom:calc(var(--u)*20);width:calc(var(--u)*19);height:calc(var(--u)*12)}
+#tL{right:calc(var(--u)*3);bottom:calc(var(--u)*34);width:calc(var(--u)*19);height:calc(var(--u)*9.5)}
+#tCu{right:calc(var(--u)*24);bottom:calc(var(--u)*34);width:calc(var(--u)*19);height:calc(var(--u)*9.5)}
+#tFocus{right:calc(var(--u)*3);bottom:calc(var(--u)*45.5);width:calc(var(--u)*19);height:calc(var(--u)*9.5)}
+#tTaunt{right:calc(var(--u)*24);bottom:calc(var(--u)*45.5);width:calc(var(--u)*19);height:calc(var(--u)*9.5)}
+/* Top-left: fullscreen, then Start. */
+#fs{left:calc(var(--u)*3);top:calc(var(--u)*3);z-index:3;width:max(34px,calc(var(--u)*10));height:max(34px,calc(var(--u)*10));border-radius:calc(var(--u)*2.6);display:none}
+#fs svg{width:55%;height:55%;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#tStart{left:calc(var(--u)*5 + max(34px,calc(var(--u)*10)));top:calc(var(--u)*3);width:calc(var(--u)*19);height:max(34px,calc(var(--u)*10))}
+html.touch.running #fs,html.full #fs{display:flex}
+#fs .out,html.full #fs .in{display:none}html.full #fs .out{display:block}
+#hint{margin-top:6px}
+#turn{display:none;position:absolute;left:50%;top:calc(75vw + var(--u)*5);transform:translateX(-50%);z-index:3;pointer-events:none;padding:6px 12px;border-radius:999px;border:1.5px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:rgba(255,255,255,.9);font:italic 700 14px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap}
+@media (orientation:portrait){html.touch.full.running #turn{display:block}}
+/* Phones upright: the picture sits at the top and the pad below it. */
+@media (orientation:portrait){html.touch.embed #stage,html.touch.fill #stage,html.touch #stage:fullscreen{align-items:flex-start}}
+/* Group host: the frame is exactly 4:3; the players' pads live in the arcade's shared view. */
+html.group #canvas{width:100%!important;height:100%!important}
+html.group #fs,html.group #turn{display:none!important}
+/* No element fullscreen (iPhone Safari): the game fills the page instead. */
+html.fill,html.fill body{height:100%;overflow:hidden}
+html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:10;border-radius:0}
+</style>
+</head>
+<body><header><strong>TOKEN · NFL Blitz PC (beta)</strong><a href="/">Back to arcade</a></header>
+<main>
+<div id="stage"><canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+<div id="touch" hidden>
+ <div class="zone" id="zone"><div id="stick"><div id="knob"></div></div></div>
+ <button class="tb" id="tStart" data-b="4096">Start</button>
+ <button class="tb" id="tA" data-b="32768">A</button>
+ <button class="tb" id="tB" data-b="16384">B</button>
+ <button class="tb" id="tR" data-b="8192">Z</button>
+ <button class="tb" id="tRun" data-b="4">C▼</button>
+ <button class="tb sm" id="tL" data-b="16">R</button>
+ <button class="tb sm" id="tCu" data-b="32">L</button>
+</div>
+<button id="fs" aria-label="Fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="in" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="out" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button>
+<div id="turn">Turn your phone sideways</div>
+</div>
+<div id="panel">
+<div class="bar"><button id="start" disabled>Start NFL Blitz</button><button id="full" class="ghost" disabled>Fullscreen</button><progress id="prog" max="1" value="0" hidden></progress></div>
+<p id="status" role="status">Preparing browser…</p>
+<details open><summary>Controls</summary>
+<table>
+<tr><td>Move, and pick in menus (stick)</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or the arrow keys</td></tr>
+<tr><td>A · B</td><td><kbd>J</kbd> · <kbd>K</kbd></td></tr>
+<tr><td>Z · R · L</td><td><kbd>Space</kbd> · <kbd>L</kbd> · <kbd>Shift</kbd></td></tr>
+<tr><td>C buttons (up / down / left / right)</td><td><kbd>I</kbd> <kbd>M</kbd> <kbd>U</kbd> <kbd>O</kbd></td></tr>
+<tr><td>D-pad</td><td><kbd>T</kbd> <kbd>G</kbd> <kbd>F</kbd> <kbd>H</kbd></td></tr>
+<tr><td>Start / pause</td><td><kbd>Enter</kbd></td></tr>
+</table>
+<p><small>An Xbox or PlayStation controller works too: the left stick is the N64 stick, A and X are A and B, the right stick and B/Y are the C buttons, the left trigger is Z, the bumpers are L and R. On a phone or tablet a pad appears on screen. Your Controller Pak saves stay in this browser.</small></p>
+</details>
+<p id="hint"><small></small></p>
+</div>
+<p class="foot"><small>Beta: NFL Blitz recompiled to WebAssembly (N64Recomp), not an emulator. Works in current Chrome, Edge, Firefox and Safari, on computers, phones and tablets. Sign in on the arcade first.</small></p>
+<p class="foot"><small id="sysinfo"></small></p>
+<p class="foot"><small>Recompiled with <a href="https://github.com/N64Recomp/N64Recomp">N64Recomp</a> on the <a href="https://github.com/jessetbh/WCWnWoRevengeRecomp">WCW/nWo Revenge</a> runtime · graphics by <a href="https://github.com/gonetz/GLideN64">GLideN64</a> · <a href="blitz-web-src.tar.gz">web build source</a></small></p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const statusEl=$('status'),startButton=$('start'),fullButton=$('full'),prog=$('prog'),stage=$('stage'),canvas=$('canvas');
+const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const EMBED=window.top!==window.self;
+const TOUCH=matchMedia('(pointer: coarse)').matches;
+if(EMBED){document.documentElement.classList.add('embed');document.querySelector('details').open=false;}
+if(TOUCH)document.documentElement.classList.add('touch');
+// Multiplayer group host (?group=host): the arcade's group code runs this page in a
+// hidden 960x720 frame, streams the picture to the other players and feeds their
+// controls in as players 2-4 (window.geGroup below).
+const GROUP=new URLSearchParams(location.search).get('group')==='host';
+if(GROUP)document.documentElement.classList.add('group');
+const ROM_URL='/games/n64/nflblitz.z64', ROM_SIZE=16777216;
+const SAVE_KEY='token-blitz-pak';   // the 32 KB Controller Pak image
+const CACHE='token-blitz-v1';
+const BUILD='1';
+function show(t,err){statusEl.textContent=t;statusEl.classList.toggle('err',!!err);document.documentElement.classList.toggle('err',!!err);}
+
+async function prepare(){
+ if(typeof WebAssembly!=='object')throw new Error('This browser is too old for this game. Update it and try again.');
+ const gl=document.createElement('canvas').getContext('webgl2');
+ if(!gl)throw new Error('This browser or device does not support WebGL 2, which this game needs.');
+ const dbg=gl.getExtension('WEBGL_debug_renderer_info');
+ const renderer=String(dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER));
+ const ua=navigator.userAgent;
+ const browser=(ua.match(/(Edg|OPR|Firefox|Chrome|Version)\/(\d+)/)||[]).slice(1).join(' ').replace(/^Edg/,'Edge').replace(/^OPR/,'Opera').replace(/^Version/,'Safari')||'unknown browser';
+ $('sysinfo').textContent='Running on: '+browser+' · '+renderer+' · '+(navigator.hardwareConcurrency||'?')+' CPU threads';
+ if(/swiftshader|basic render|llvmpipe|software/i.test(renderer))show('Warning: hardware graphics acceleration is off in this browser, so the game will be slow. Turn it on in the browser settings (System › Use graphics acceleration).',true);
+ if(!LOCAL){
+  show('Checking premium access…');
+  const access=await fetch('https://api.discordarcade.com/api/arcade/access',{credentials:'include',cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!access.ok)throw new Error('Access check failed ('+access.status+').');
+  if((await access.json()).allowed!==true)throw new Error('Sign in on the main arcade with premium access, then return here.');
+ }
+ if(TOUCH)$('hint').firstChild.textContent='Turn your phone sideways. The on-screen pad appears when the game starts.';
+ return true;
+}
+
+// Download once, then load from Cache Storage on later visits.
+async function getFile(url,label,expect){
+ let cache=null;try{cache=await caches.open(CACHE);}catch{}
+ const hit=cache&&await cache.match(url);
+ if(hit)return new Uint8Array(await hit.arrayBuffer());
+ const res=await fetch(url);
+ if(!res.ok)throw new Error(label+' download failed ('+res.status+').');
+ const total=Number(res.headers.get('content-length'))||expect||0;
+ const reader=res.body.getReader();const parts=[];let got=0;
+ for(;;){const {done,value}=await reader.read();if(done)break;parts.push(value);got+=value.length;
+  if(total){prog.hidden=false;prog.value=got/total;show('Downloading '+label+'… '+Math.round(got/total*100)+'%');}}
+ const buf=new Uint8Array(got);let o=0;for(const p of parts){buf.set(p,o);o+=p.length;}
+ if(cache)cache.put(url,new Response(buf,{headers:{'content-type':'application/octet-stream'}})).catch(()=>{});
+ return buf;
+}
+
+// Saves: the Controller Pak in port 1 (32 KB), kept in localStorage.
+function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+function unb64(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+function loadSave(){
+ let v=null;try{v=localStorage.getItem(SAVE_KEY);}catch{}
+ if(!v)return;
+ const data=unb64(v),p=Module._malloc(data.length);
+ Module.HEAPU8.set(data,p);Module._rv_save_load(p,data.length);Module._free(p);
+}
+function persistSave(){
+ if(typeof Module==='undefined'||!Module._rv_save_dirty||!Module._rv_save_dirty())return;
+ const p=Module._rv_save_ptr(),n=Module._rv_save_size();
+ try{localStorage.setItem(SAVE_KEY,b64(Module.HEAPU8.slice(p,p+n)));}catch(e){console.warn('Could not keep the save:',e);}
+}
+
+// ---- Controls --------------------------------------------------------------------
+// N64 bits: A 0x8000, B 0x4000, Z 0x2000, Start 0x1000, d-pad U/D/L/R 0x800/0x400/0x200/0x100,
+// L 0x20, R 0x10, C U/D/L/R 8/4/2/1. Stick -80..80, up positive.
+const N={A:0x8000,B:0x4000,Z:0x2000,START:0x1000,DU:0x800,DD:0x400,DL:0x200,DR:0x100,L:0x20,R:0x10,CU:8,CD:4,CL:2,CR:1};
+const KEYS={KeyT:N.DU,KeyG:N.DD,KeyF:N.DL,KeyH:N.DR,
+ KeyJ:N.A,KeyK:N.B,KeyL:N.R,ShiftLeft:N.L,ShiftRight:N.L,Space:N.Z,KeyI:N.CU,KeyM:N.CD,KeyU:N.CL,KeyO:N.CR,Enter:N.START,NumpadEnter:N.START};
+// Movement keys push the analog stick (football moves with the stick).
+const STICK={KeyW:[0,80],ArrowUp:[0,80],KeyS:[0,-80],ArrowDown:[0,-80],KeyA:[-80,0],ArrowLeft:[-80,0],KeyD:[80,0],ArrowRight:[80,0]};
+const kb={b:0,stick:new Set()},touch={b:0,x:0,y:0},pads=[];
+// A tap shorter than a game frame (easy on a phone, or when a frame runs long) still
+// reaches the game: a pressed button counts as down for at least one game frame and
+// 70 ms (4 retraces).
+let tapped=0,tapAt=0,tapFrames=0;
+function tap(bit){tapped|=bit;tapAt=performance.now();tapFrames=0;}
+let sent='';
+addEventListener('keydown',e=>{
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ const bit=KEYS[e.code];
+ if(bit!==undefined){kb.b|=bit;tap(bit);e.preventDefault();}
+ else if(STICK[e.code]){kb.stick.add(e.code);tap(withDpad(0,...STICK[e.code]));e.preventDefault();}
+ else return;
+ sendPad();
+},true);
+addEventListener('keyup',e=>{
+ const bit=KEYS[e.code];
+ if(bit!==undefined)kb.b&=~bit;else if(STICK[e.code])kb.stick.delete(e.code);else return;
+ sendPad();
+},true);
+addEventListener('blur',()=>{kb.b=0;kb.stick.clear();sendPad();});
+// Gamepads (standard mapping): A/X = A/B, B/Y = C-down/C-up, bumpers = L/R, left trigger = Z.
+const GP_BITS=[N.A,N.CD,N.B,N.CU,N.L,N.R,N.Z,N.Z,0,N.START,0,0,N.DU,N.DD,N.DL,N.DR];
+function readGamepads(){
+ const out=[];
+ for(const g of (navigator.getGamepads?navigator.getGamepads():[])){
+  if(!g||!g.connected||g.mapping!=='standard')continue;
+  let b=0;
+  g.buttons.forEach((btn,i)=>{if(GP_BITS[i]&&(btn.pressed||btn.value>0.5))b|=GP_BITS[i];});
+  const dead=v=>Math.abs(v)<0.15?0:v;
+  const lx=dead(g.axes[0]||0),ly=dead(g.axes[1]||0);   // left stick = the N64 stick
+  const rx=g.axes[2]||0,ry=g.axes[3]||0;              // right stick = the C buttons
+  if(rx<-0.5)b|=N.CL;if(rx>0.5)b|=N.CR;if(ry<-0.5)b|=N.CU;if(ry>0.5)b|=N.CD;
+  out.push({b,x:Math.round(lx*80),y:Math.round(-ly*80)});
+ }
+ return out;
+}
+// Blitz's menus move on the d-pad only, while play takes the stick first and the d-pad
+// only when the stick is centred. So a stick pushed past halfway also presses that
+// d-pad direction: menus follow the arrow keys, the touch stick and a gamepad's stick,
+// and play is unchanged (past halfway the game already reads the stick).
+function withDpad(b,x,y){
+ if(y>=40)b|=N.DU;else if(y<=-40)b|=N.DD;
+ if(x>=40)b|=N.DR;else if(x<=-40)b|=N.DL;
+ return b;
+}
+// Player 1 is the keyboard, the on-screen pad and the first gamepad together; more gamepads are players 2-4.
+function sendPad(){
+ if(typeof Module==='undefined'||!Module._rv_set_pad)return;
+ const gp=readGamepads();
+ let x=0,y=0;for(const c of kb.stick){x+=STICK[c][0];y+=STICK[c][1];}
+ x=Math.max(-80,Math.min(80,x));y=Math.max(-80,Math.min(80,y));
+ const p1={b:kb.b|touch.b|tapped|(gp[0]?.b||0),x:touch.x||gp[0]?.x||x,y:touch.y||gp[0]?.y||y};
+ const all=[p1];if(!GROUP)for(let i=1;i<4&&i<gp.length;i++)all.push(gp[i]);
+ const key=all.map(p=>p.b+','+p.x+','+p.y).join('|');
+ if(key===sent)return;sent=key;
+ all.forEach((p,i)=>Module._rv_set_pad(i,withDpad(p.b,p.x,p.y),p.x,p.y));
+}
+
+// On-screen pad (phones and tablets): the analog stick and the N64 buttons.
+function startTouch(){
+ const zone=$('zone'),stick=$('stick'),knob=$('knob');
+ let sid=null,ox=0,oy=0,R=55;
+ zone.addEventListener('pointerdown',e=>{if(sid!==null)return;sid=e.pointerId;zone.setPointerCapture(sid);
+  const r=zone.getBoundingClientRect();ox=e.clientX;oy=e.clientY;R=Math.max(30,stick.offsetWidth*.42);
+  stick.style.left=(ox-r.left)+'px';stick.style.top=(oy-r.top)+'px';stick.classList.add('on');knob.style.transform='';e.preventDefault();});
+ zone.addEventListener('pointermove',e=>{if(e.pointerId!==sid)return;
+  let dx=e.clientX-ox,dy=e.clientY-oy;const d=Math.hypot(dx,dy);if(d>R){dx*=R/d;dy*=R/d;}
+  knob.style.transform=`translate(${dx}px,${dy}px)`;
+  const d2=Math.hypot(dx,dy)<R*0.15?0:1;
+  touch.x=Math.round(d2*dx/R*80);touch.y=Math.round(-d2*dy/R*80);sendPad();});
+ const end=e=>{if(e.pointerId!==sid)return;sid=null;stick.style.left=stick.style.top='';stick.classList.remove('on');knob.style.transform='';touch.x=touch.y=0;sendPad();};
+ zone.addEventListener('pointerup',end);zone.addEventListener('pointercancel',end);
+ for(const b of document.querySelectorAll('#touch .tb')){
+  const bit=Number(b.dataset.b||0),ty=Number(b.dataset.ty||0);
+  const on=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);b.classList.add('on');touch.b|=bit;tap(bit);if(ty)touch.y=ty;sendPad();};
+  const off=()=>{b.classList.remove('on');touch.b&=~bit;if(ty)touch.y=0;sendPad();};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+ }
+ $('touch').hidden=false;
+}
+
+// ---- Sound -----------------------------------------------------------------------
+// The game's mix plays through an AudioWorklet (rv-audio.js) on the browser's audio
+// thread, so when the page is busy it goes quiet instead of looping the last bit of
+// sound. The game paces itself from how much is still queued (rvAudioQueued).
+const AU={ctx:null,node:null,rate:32000,endT:0,sent:0,pending:[]};
+function rvAudioInit(rate){
+ AU.rate=rate;
+ if(AU.node)AU.node.port.postMessage({rate});
+ if(AU.ctx)return;
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC||typeof AudioWorkletNode==='undefined')return;
+ try{
+  AU.ctx=new AC({latencyHint:'interactive'});
+  if(!AU.ctx.audioWorklet){AU.ctx=null;return;}
+  AU.ctx.audioWorklet.addModule('rv-audio.js?v='+BUILD).then(()=>{
+   AU.node=new AudioWorkletNode(AU.ctx,'rv-out',{numberOfInputs:0,outputChannelCount:[2],processorOptions:{rate:AU.rate}});
+   AU.node.connect(AU.ctx.destination);
+   AU.node.port.onmessage=e=>{const m=e.data;AU.endT=m.t+(m.buffered+Math.max(0,AU.sent-m.received))/AU.rate;AU.underruns=m.underruns;};
+   for(const c of AU.pending)AU.node.port.postMessage(c,[c.buffer]);AU.pending.length=0;
+  }).catch(e=>console.warn('Sound could not start:',e));
+  // Browsers start sound only after a tap or key press on the page.
+  const resume=()=>{if(AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});};
+  for(const t of ['pointerdown','touchend','mousedown','keydown'])addEventListener(t,resume,true);
+  resume();
+ }catch(e){console.warn(e);AU.ctx=null;}
+}
+// Frames queued ahead of the speakers. Until sound is unlocked, playback is simulated
+// in real time so the game keeps its normal pace.
+const SIM={q:0,t:0};
+function rvAudioQueued(){
+ if(AU.ctx&&AU.ctx.state==='running')return Math.round(Math.max(0,(AU.endT-AU.ctx.currentTime)*AU.rate));
+ const now=performance.now();if(SIM.t)SIM.q=Math.max(0,SIM.q-(now-SIM.t)*AU.rate/1000);SIM.t=now;return Math.round(SIM.q);
+}
+function rvAudioPush(view){
+ if(!AU.ctx||AU.ctx.state!=='running'){rvAudioQueued();SIM.q+=view.length>>1;return;}
+ if(rvAudioQueued()>AU.rate*0.25)return;   // after a burst, drop rather than fall behind
+ const data=view.slice(),now=AU.ctx.currentTime;
+ if(AU.endT<now)AU.endT=now;
+ AU.endT+=(data.length>>1)/AU.rate;AU.sent+=data.length>>1;
+ if(AU.node)AU.node.port.postMessage(data,[data.buffer]);else if(AU.pending.length<8)AU.pending.push(data);
+}
+
+// ---- ?stats: speed readout -------------------------------------------------------
+// Retraces/s (60 = full speed), game frames drawn/s, ms of CPU per second spent in the
+// game and in drawing, sound queued ahead and how often it ran dry.
+function startStats(){
+ const box=document.createElement('div');box.id='stats';stage.appendChild(box);
+ let last=null;
+ setInterval(()=>{
+  const s=[0,1,2,3,4].map(i=>Module._rv_stat(i)),now=performance.now();
+  if(last){
+   const dt=(now-last.t)/1000,d=i=>(s[i]-last.s[i])/dt;
+   box.textContent='retraces '+d(0).toFixed(0)+'/s  frames '+d(1).toFixed(0)+'/s\n'+
+    'game '+d(3).toFixed(0)+' ms/s  draw '+d(4).toFixed(0)+' ms/s\n'+
+    'sound '+Math.round(rvAudioQueued()/AU.rate*1000)+' ms queued, '+(AU.underruns||0)+' dropouts';
+  }
+  last={s,t:now};
+ },1000);
+}
+
+// ---- Picture size ----------------------------------------------------------------
+// The game draws at the canvas's real pixel size (capped so phones keep their frame rate).
+let sizeTimer=0;
+function fitOutput(){
+ clearTimeout(sizeTimer);
+ sizeTimer=setTimeout(()=>{
+  if(!Module._rv_set_output_size)return;
+  const r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  const cap=GROUP?960:TOUCH?1280:1920;
+  let w=Math.round(r.width*dpr),h=Math.round(r.height*dpr);
+  if(w<64||h<48)return;
+  if(w>cap){h=Math.round(h*cap/w);w=cap;}
+  Module._rv_set_output_size(w,h);
+ },250);
+}
+
+async function start(){
+ startButton.disabled=true;
+ try{
+  const rom=await getFile(ROM_URL,'NFL Blitz',ROM_SIZE);
+  if(rom.length!==ROM_SIZE)throw new Error('Unexpected ROM size ('+rom.length+' bytes).');
+  prog.hidden=true;show('Starting…');
+  stage.classList.add('on');fullButton.disabled=false;
+  window.Module={
+   canvas,
+   rvAudioInit,rvAudioPush,rvAudioQueued,rvLoadSave:loadSave,
+   rvMessage:t=>fail(t),
+   rvStarted:()=>{
+    show(TOUCH?'Running.':'Running. Click the game, then play with the keyboard or a controller.');
+    document.documentElement.classList.add('running');canvas.focus();
+    if(TOUCH&&!GROUP)startTouch();
+    fitOutput();new ResizeObserver(fitOutput).observe(canvas);
+    const loop=()=>{if(tapped&&tapFrames>0&&performance.now()-tapAt>70)tapped=0;sendPad();Module._rv_frame();tapFrames++;requestAnimationFrame(loop);};
+    requestAnimationFrame(loop);
+    if(/[?&]stats\b/.test(location.search))startStats();
+    if(GROUP)geGroup.running=true;
+   },
+   locateFile:p=>p+'?v='+BUILD,   // new build, new URL: never mix a cached .js with a different .wasm
+   print:t=>console.log(t),printErr:t=>console.warn(t),
+   preRun:[()=>{FS.mkdir('/rom');FS.writeFile('/rom/blitz.z64',rom);}],
+   onAbort:w=>fail('The game stopped: '+w+'\nReload the page to restart.'),
+  };
+  setInterval(persistSave,4000);
+  addEventListener('pagehide',persistSave);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)persistSave();});
+  const s=document.createElement('script');s.src='blitz.js?v='+BUILD;
+  s.onerror=()=>show('Could not load the game code.',true);
+  document.body.appendChild(s);
+ }catch(e){console.error(e);fail(e.message);startButton.disabled=false;}
+}
+
+// Fullscreen: the real thing where the browser allows it (computers, Android, iPad).
+// iPhone Safari only lets videos go fullscreen, so there the game fills the page
+// instead; inside the arcade, the arcade page does that for its frame.
+const fsTarget=EMBED?document.documentElement:stage;
+const fsElement=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+let filled=false;
+function syncFull(){
+ const on=!!fsElement()||filled;
+ document.documentElement.classList.toggle('full',on);
+ const label=on?'Exit fullscreen':'Fullscreen';$('fs').title=label;$('fs').setAttribute('aria-label',label);
+}
+function setFilled(on){
+ if(EMBED){parent.postMessage({type:'token-fullscreen',on},location.origin);return;}   // the arcade replies with its state
+ filled=on;document.documentElement.classList.toggle('fill',on);syncFull();
+}
+addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==parent||e.data?.type!=='token-fullscreen')return;
+ filled=!!e.data.on;syncFull();
+});
+document.addEventListener('fullscreenchange',syncFull);document.addEventListener('webkitfullscreenchange',syncFull);
+async function toggleFull(){
+ if(fsElement()){try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch{}return;}
+ if(filled){setFilled(false);return;}
+ const req=fsTarget.requestFullscreen||fsTarget.webkitRequestFullscreen;
+ if(req&&(document.fullscreenEnabled||document.webkitFullscreenEnabled)){
+  try{
+   await req.call(fsTarget,{navigationUI:'hide'});
+   if(TOUCH)screen.orientation?.lock?.('landscape')?.catch(()=>{});   // Android: stay sideways while fullscreen
+   canvas.focus();return;
+  }catch{}
+ }
+ setFilled(true);
+}
+$('fs').addEventListener('pointerdown',e=>e.preventDefault());   // keep the tap from reaching the pad or the canvas
+$('fs').onclick=toggleFull;
+fullButton.onclick=toggleFull;
+startButton.onclick=start;
+addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))fail('The game crashed: '+e.message+'\nReload the page to restart. A screenshot of this message helps.');});
+function fail(t){show(t,true);if(GROUP)geGroup.error=t;}
+
+// What the arcade's group code (arcade-group.js) uses when this page is the host.
+const geGroup=window.geGroup={
+ running:false,error:null,
+ // The game picture (and sound, once the worklet runs) as one stream for the other players.
+ async capture(fps){
+  const stream=canvas.captureStream(fps);
+  stream.getVideoTracks().forEach(t=>{t.contentHint='motion';});
+  for(let i=0;i<30&&!AU.node;i++)await new Promise(r=>setTimeout(r,100));
+  if(AU.node){
+   if(!AU.dest){AU.dest=AU.ctx.createMediaStreamDestination();AU.node.connect(AU.dest);}
+   AU.dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+  }
+  return stream;
+ },
+ // An N64 controller (0-3): button bits, stick -80..80 (up is positive).
+ setPad(idx,buttons,x,y){
+  if(idx===0){touch.b=buttons;touch.x=x;touch.y=y;sent='';sendPad();return;}
+  try{Module._rv_set_pad(idx,withDpad(buttons,x,y),x,y);}catch{}
+ },
+ releasePad(idx){this.setPad(idx,0,0,0);},
+ // Taps land on the arcade's view, not this frame, so it starts the sound from there.
+ resumeAudio(){if(AU.ctx&&AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});},
+};
+
+prepare().then(ok=>{if(!ok)return;
+  if(GROUP){start();return;}   // the lobby's Start button was the click
+  startButton.disabled=false;if(!statusEl.classList.contains('err'))show('Ready. Press Start (the 16 MB game downloads once).');})
+ .catch(e=>{console.error(e);fail(e.message);});
+</script>
+</body></html>
