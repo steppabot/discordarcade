@@ -2135,6 +2135,15 @@
     "subtitle": "N64 · WRESTLING"
   },
   {
+    "id": "nflblitz",
+    "title": "NFL Blitz",
+    "type": "retro",
+    "core": "n64",
+    "url": "/games/n64/nflblitz.z64",
+    "icon": "/images/nflblitz.jpg",
+    "subtitle": "N64 · SPORTS"
+  },
+  {
     "id": "crazytaxi",
     "title": "Crazy Taxi",
     "type": "retro",
