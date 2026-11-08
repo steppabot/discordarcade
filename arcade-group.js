@@ -511,6 +511,12 @@
       hint: () =>
         "In Revenge, pick Exhibition or Special Match and a mode with human " +
         "players (like 1P vs 2P). Each player picks their own wrestler."
+    },
+    nflblitz: {
+      view: "shared",
+      fps: 30, // Blitz draws 30 frames per second
+      hint: () =>
+        "In NFL Blitz, everyone presses Start to join in, then picks a team."
     }
   };
   const DEFAULT_GAME = { view: "shared", fps: 60, hint: () => "" };
@@ -627,7 +633,9 @@
   const PC_SIZE = [960, 720];
   const PC_PORTS = {
     goldeneye: { page: "goldeneye-pc/", title: "GoldenEye 007", engine: "pc" },
-    revenge: { page: "revenge-pc/", title: "WCW/nWo Revenge", engine: "rv" }
+    revenge: { page: "revenge-pc/", title: "WCW/nWo Revenge", engine: "rv" },
+    // Guests keep the standard N64 controls (arrows = d-pad, T F G H = stick).
+    blitz: { page: "nflblitz-pc/", title: "NFL Blitz", engine: "classic" }
   };
 
   function pcEngine(container, id = "goldeneye") {
