@@ -302,7 +302,7 @@ function removeRunDependency(id) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  var f = "game-4bcc9fcf64889f03.wasm";
+  var f = "game-c2867fd7ecc06376.wasm";
   if (!isDataURI(f)) {
     return locateFile(f);
   }
@@ -428,7 +428,11 @@ function __asyncjs__port_browser_idle_yield() {
   });
 }
 
-function __asyncjs__load_image(destination) {
+function port_yield_allowed() {
+  return Module.portYieldAllowed ? Module.portYieldAllowed() : 1;
+}
+
+function __asyncjs__load_image_async(destination) {
   return Asyncify.handleAsync(async () => {
     try {
       const bytes = await portVmu.load();
@@ -444,7 +448,7 @@ function __asyncjs__load_image(destination) {
   });
 }
 
-function __asyncjs__save_phase(block, phase, data) {
+function __asyncjs__save_phase_async(block, phase, data) {
   return Asyncify.handleAsync(async () => {
     try {
       await portVmu.write(block, phase, HEAPU8.slice(data, data + 128));
@@ -457,6 +461,19 @@ function __asyncjs__save_phase(block, phase, data) {
       return 0;
     }
   });
+}
+
+function load_image_ready(destination) {
+  if (Module.portVmuImage === undefined) return -1;
+  if (!Module.portVmuImage) return 0;
+  HEAPU8.set(Module.portVmuImage, destination);
+  return 1;
+}
+
+function save_phase_queued(block, phase, data) {
+  if (!Module.portVmuWrite) return -1;
+  Module.portVmuWrite(block, phase, HEAPU8.slice(data, data + 128));
+  return 1;
 }
 
 function show_lcd(data) {
@@ -569,6 +586,17 @@ function port_save_frame() {
     kind: "frame",
     bytes
   }, [ bytes ]));
+}
+
+function port_disc_read_sync(url, data, size) {
+  const bytes = Module.portDiscReadSync ? Module.portDiscReadSync(UTF8ToString(url)) : null;
+  if (!bytes) return 0;
+  const p = _malloc(bytes.length);
+  if (!p) return 0;
+  HEAPU8.set(bytes, p);
+  HEAPU32[data >> 2] = p;
+  HEAP32[size >> 2] = bytes.length;
+  return 1;
 }
 
 function port_audio_submit(data, frames) {
@@ -5015,10 +5043,10 @@ registerPreMainLoop(() => {
 });
 
 var wasmImports = {
-  /** @export */ __asyncjs__load_image,
+  /** @export */ __asyncjs__load_image_async,
   /** @export */ __asyncjs__port_browser_idle_yield,
   /** @export */ __asyncjs__port_browser_yield,
-  /** @export */ __asyncjs__save_phase,
+  /** @export */ __asyncjs__save_phase_async,
   /** @export */ __syscall_fcntl64: ___syscall_fcntl64,
   /** @export */ __syscall_ioctl: ___syscall_ioctl,
   /** @export */ __syscall_openat: ___syscall_openat,
@@ -5096,12 +5124,16 @@ var wasmImports = {
   /** @export */ glVertexAttribIPointer: _glVertexAttribIPointer,
   /** @export */ glVertexAttribPointer: _glVertexAttribPointer,
   /** @export */ glViewport: _glViewport,
+  /** @export */ load_image_ready,
   /** @export */ port_audio_submit,
+  /** @export */ port_disc_read_sync,
   /** @export */ port_gpu_begin,
   /** @export */ port_gpu_end,
   /** @export */ port_save_frame,
   /** @export */ port_save_snapshot,
   /** @export */ port_save_vram,
+  /** @export */ port_yield_allowed,
+  /** @export */ save_phase_queued,
   /** @export */ show_lcd
 };
 
@@ -5165,7 +5197,7 @@ var _asyncify_start_rewind = a0 => (_asyncify_start_rewind = wasmExports["asynci
 
 var _asyncify_stop_rewind = () => (_asyncify_stop_rewind = wasmExports["asyncify_stop_rewind"])();
 
-var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910700;
+var ___emscripten_embedded_file_data = Module["___emscripten_embedded_file_data"] = 1910716;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===

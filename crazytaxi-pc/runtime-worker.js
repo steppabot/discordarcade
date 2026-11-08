@@ -62,16 +62,34 @@ function portDiscCopy(streamAt,out,outAt,count){
   streamAt+=n;outAt+=n;count-=n;
  }
 }
-function portDiscRead(url){
+// The bytes of one read, or null when the disc isn't loaded yet or the URL isn't a disc read.
+function portDiscBytes(url){
  const m=/^\/disc\/(\d+)\?offset=(\d+)&length=(\d+)/.exec(url);
- if(!m)return new Response('',{status:404});
+ if(!m||!portDisc)return null;
  const track=+m[1],offset=+m[2],length=+m[3],S=portDisc.manifest.sectorBytes,out=new Uint8Array(length);
  for(const r of portDisc.manifest.regions){
   if(r.track!==track)continue;
   const rs=r.firstSector*S,re=rs+r.sectors*S,a=Math.max(offset,rs),b=Math.min(offset+length,re);
   if(a<b)portDiscCopy(r.at+(a-rs),out,a-offset,b-a);
  }
- return new Response(out);
+ return out;
+}
+function portDiscRead(url){const out=portDiscBytes(url);return out?new Response(out):new Response('',{status:404});}
+// Builds that suspend only while the game waits for the next frame (yieldFrames in
+// runtime-loader.js: the WASM function numbers instrumented for it) may yield only
+// when every WASM frame on the stack is one of them; otherwise the game keeps running.
+function portMakeYieldCheck(frames){
+ const safe=new Set(frames),limit=256;let retryAt=0;
+ try{if(!(Error.stackTraceLimit>=limit))Error.stackTraceLimit=limit;}catch{}
+ return ()=>{
+  const now=performance.now();if(now<retryAt)return 0;
+  const lines=String(new Error().stack||'').split('\n');let i=0,frames=0;
+  const refuse=()=>{retryAt=now+1;return 0;};
+  while(i<lines.length&&!lines[i].includes('wasm-function['))i++;
+  for(;i<lines.length;i++){const m=/wasm-function\[(\d+)\]/.exec(lines[i]);if(!m)break;if(!safe.has(+m[1]))return refuse();frames++;}
+  for(;i<lines.length;i++)if(lines[i].includes('wasm-function['))return refuse(); // WASM below a script frame
+  return frames>0&&lines.length<limit-2?1:refuse();
+ };
 }
 if(typeof self.fetch==='function'&&self.location){
  const originalFetch=self.fetch.bind(self);
@@ -104,11 +122,21 @@ self.onmessage=event=>{
     onAbort:fail,onExit:code=>{if(code)fail('Worker runtime exited with code '+code);},
     portAudioPush:samples=>postMessage({kind:'audio',samples},[samples.buffer]),
     portBrowserYield:async(delay=0)=>{flushLogs();if(paused)await new Promise(resolve=>resumeWorker=resolve);return delay>0?portBrowserScheduler.idle():portBrowserScheduler.yield();},
+    portDiscReadSync:portDiscBytes,
     // The game code is fetched here (runtime-loader.js names the file); it ships gzip-compressed (11-25 MB -> 3-4 MB).
     instantiateWasm:(imports,receive)=>{
      const file=typeof portSelectedBuild!=='undefined'&&portSelectedBuild.wasmFile;
      if(!file){fail('runtime-loader.js names no wasmFile for this build.');return {};}
-     portLoadWasm(new URL(file,self.location.href).href).then(bytes=>WebAssembly.instantiate(bytes,imports)).then(r=>receive(r.instance,r.module)).catch(error=>fail('Could not load the game code: '+(error.message||error)));
+     // A build that can suspend only while waiting for a frame starts once the disc and
+     // the memory card are in memory, so their reads never suspend; saves are queued.
+     const frames=portSelectedBuild.yieldFrames,waits=[];
+     if(frames){
+      Module.portYieldAllowed=portMakeYieldCheck(frames);
+      let saves=Promise.resolve();
+      Module.portVmuWrite=(block,phase,bytes)=>{saves=saves.then(()=>portVmu.write(block,phase,bytes)).catch(error=>postMessage({kind:'vmu-status',error:error.message}));};
+      waits.push(portDiscReady,portVmu.load().then(bytes=>{Module.portVmuImage=bytes;},error=>{Module.portVmuImage=null;postMessage({kind:'vmu-status',error:error.message});}));
+     }
+     Promise.all([portLoadWasm(new URL(file,self.location.href).href),...waits]).then(([bytes])=>WebAssembly.instantiate(bytes,imports)).then(r=>receive(r.instance,r.module)).catch(error=>fail('Could not load the game code: '+(error.message||error)));
      return {};
     }
    };

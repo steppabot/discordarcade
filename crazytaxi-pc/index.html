@@ -13,6 +13,7 @@ button.ghost{background:#2a2350;border:1px solid #413652}
 #status{white-space:pre-wrap;min-height:1.4em}#status.err{color:#ff8f8f}
 #stage{display:none;background:#000;border-radius:8px;overflow:hidden;position:relative}
 #stage.on{display:flex;justify-content:center}
+#stats{position:absolute;left:6px;top:6px;z-index:5;font:12px/1.35 ui-monospace,Menlo,monospace;background:#000b;color:#9f9;padding:4px 7px;border-radius:5px;pointer-events:none;white-space:pre}
 #canvas{display:block;width:100%;aspect-ratio:4/3;max-height:calc(100vh - 160px);max-width:calc((100vh - 160px)*4/3);background:#000;outline:none}
 #stage:fullscreen{align-items:center}
 #stage:fullscreen #canvas{width:min(100vw,133.33vh);height:min(100vh,75vw);max-height:none;max-width:none;aspect-ratio:auto}
@@ -68,7 +69,7 @@ html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:
 </head>
 <body><header><strong>TOKEN · Crazy Taxi PC (beta)</strong><a href="/">Back to arcade</a></header>
 <main>
-<div id="stage"><canvas id="canvas" width="640" height="480" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+<div id="stage"><div id="stats" hidden></div><canvas id="canvas" width="640" height="480" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
 <div id="touch" hidden>
  <div class="zone" id="zone"><div id="stick"><div id="knob"></div></div></div>
  <button class="tb" id="tStart" data-b="8">Start</button>
@@ -99,7 +100,7 @@ html.fill #stage{display:flex;align-items:center;position:fixed;inset:0;z-index:
 <p class="foot"><small>Beta: the Dreamcast Crazy Taxi recompiled to WebAssembly with the <a href="https://github.com/dmikey/dreamcast-port-kit">Dreamcast Port Kit</a> (built on <a href="https://github.com/sp00nznet/dcrecomp">dcrecomp</a>), not a full emulator. Works in current Chrome, Edge, Firefox and Safari 17+. Sign in on the arcade first.</small></p>
 <p class="foot"><small id="sysinfo"></small></p>
 </main>
-<script src="runtime-bridge.js?v=8"></script><script src="audio.js?v=8"></script>
+<script src="runtime-bridge.js?v=9"></script><script src="audio.js?v=9"></script>
 <script>
 const $=id=>document.getElementById(id);
 const statusEl=$('status'),startButton=$('start'),fullButton=$('full'),prog=$('prog'),stage=$('stage'),canvas=$('canvas');
@@ -109,6 +110,17 @@ const TOUCH=matchMedia('(pointer: coarse)').matches;
 if(EMBED){document.documentElement.classList.add('embed');document.querySelector('details').open=false;}
 if(TOUCH)document.documentElement.classList.add('touch');
 const DEBUG=new URLSearchParams(location.search).has('debug');
+// ?stats: frame rate, CPU use and which game build this browser runs, over the game.
+const STATS=new URLSearchParams(location.search).has('stats');
+const stats={build:'',fps:'',cpu:'',frames:0,at:0};
+function statsLine(t){
+ const f=/\[FRAME\] (\d+) rendered/.exec(t),p=/\[PERF\] .*?(\d+)ms waiting \/ (\d+)ms elapsed/.exec(t);
+ if(f){const n=+f[1],now=performance.now();if(stats.at&&n>stats.frames)stats.fps=((n-stats.frames)*1000/(now-stats.at)).toFixed(0);stats.frames=n;stats.at=now;}
+ else if(p)stats.cpu=Math.max(0,Math.round(100-100*p[1]/p[2]))+'%';
+ else return;
+ const el=document.getElementById('stats');el.hidden=false;
+ el.textContent=(stats.build||'?')+'\nfps '+(stats.fps||'…')+'  cpu '+(stats.cpu||'…');
+}
 // The disc (disc.json + disc-0..5.bin) downloads from R2; a copy next to this page is the fallback.
 const DISC_R2='https://pub-e73f4622624449af92a3bfbd79f864d7.r2.dev/dreamcast/crazytaxi/';
 const DISC_BASES=[new URLSearchParams(location.search).get('disc')||DISC_R2,'./'];
@@ -222,7 +234,8 @@ async function start(){
     wasmDone=true;running();
     const loop=()=>{sendPad();requestAnimationFrame(loop);};requestAnimationFrame(loop);
    },
-   log:t=>{if(DEBUG)console.log(t);else if(/\[DISC\] read failed|abort|error/i.test(t))console.warn(t);},
+   build:b=>{stats.build=b&&b.suspension==='jspi'?'fast build':b&&b.yieldFrames?'Safari build (slim)':'Safari build';},
+   log:t=>{if(STATS)statsLine(t);if(DEBUG)console.log(t);else if(/\[DISC\] read failed|abort|error/i.test(t))console.warn(t);},
    audio:samples=>portAudio.push(samples),
    error:m=>fail('The game stopped: '+m+'\nReload the page to restart.'),
    vmu:d=>{if(DEBUG||d.error)console.log('[VMU]',d.kind,d.message||d.error||'');},
