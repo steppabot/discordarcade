@@ -128,7 +128,7 @@ if(GROUP)document.documentElement.classList.add('group');
 const ROM_URL='/games/n64/nflblitz.z64', ROM_SIZE=16777216;
 const SAVE_KEY='token-blitz-pak';   // the 32 KB Controller Pak image
 const CACHE='token-blitz-v1';
-const BUILD='1';
+const BUILD='2';
 function show(t,err){statusEl.textContent=t;statusEl.classList.toggle('err',!!err);document.documentElement.classList.toggle('err',!!err);}
 
 async function prepare(){
@@ -371,9 +371,9 @@ async function start(){
     if(GROUP)geGroup.running=true;
    },
    locateFile:p=>p+'?v='+BUILD,   // new build, new URL: never mix a cached .js with a different .wasm
-   print:t=>console.log(t),printErr:t=>console.warn(t),
+   print:t=>console.log(t),printErr:t=>{console.warn(t);if(/^\[web\]|Assertion|Failed|error/i.test(t))lastProblem=t;},
    preRun:[()=>{FS.mkdir('/rom');FS.writeFile('/rom/blitz.z64',rom);}],
-   onAbort:w=>fail('The game stopped: '+w+'\nReload the page to restart.'),
+   onAbort:w=>fail('The game stopped: '+w+details()+'\nReload the page to restart. A screenshot of this message helps.'),
   };
   setInterval(persistSave,4000);
   addEventListener('pagehide',persistSave);
@@ -421,7 +421,10 @@ $('fs').addEventListener('pointerdown',e=>e.preventDefault());   // keep the tap
 $('fs').onclick=toggleFull;
 fullButton.onclick=toggleFull;
 startButton.onclick=start;
-addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))fail('The game crashed: '+e.message+'\nReload the page to restart. A screenshot of this message helps.');});
+addEventListener('error',e=>{if(e.message&&/RuntimeError|unreachable|signature|memory access/.test(e.message))fail('The game crashed: '+e.message+details()+'\nReload the page to restart. A screenshot of this message helps.');});
+// The last runtime message that looks like a problem, shown with a crash.
+let lastProblem='';
+function details(){return lastProblem?'\n('+lastProblem.slice(0,200)+')':'';}
 function fail(t){show(t,true);if(GROUP)geGroup.error=t;}
 
 // What the arcade's group code (arcade-group.js) uses when this page is the host.
