@@ -251,25 +251,37 @@ function sendPad(){
 
 // On-screen pad (phones and tablets): the analog stick and the N64 buttons.
 function startTouch(){
- const zone=$('zone'),stick=$('stick'),knob=$('knob');
+ const zone=$('zone'),stick=$('stick'),knob=$('knob'),btns=[...document.querySelectorAll('#touch .tb')];
  let sid=null,ox=0,oy=0,R=55;
- zone.addEventListener('pointerdown',e=>{if(sid!==null)return;sid=e.pointerId;zone.setPointerCapture(sid);
+ const stickOff=()=>{sid=null;stick.style.left=stick.style.top='';stick.classList.remove('on');knob.style.transform='';touch.x=touch.y=0;};
+ // A new touch on the stick always takes it over, so a lift the browser never reported
+ // (a system swipe, a rotation, an alert) cannot leave the stick held.
+ zone.addEventListener('pointerdown',e=>{stickOff();sid=e.pointerId;try{zone.setPointerCapture(sid);}catch{}
   const r=zone.getBoundingClientRect();ox=e.clientX;oy=e.clientY;R=Math.max(30,stick.offsetWidth*.42);
-  stick.style.left=(ox-r.left)+'px';stick.style.top=(oy-r.top)+'px';stick.classList.add('on');knob.style.transform='';e.preventDefault();});
+  stick.style.left=(ox-r.left)+'px';stick.style.top=(oy-r.top)+'px';stick.classList.add('on');knob.style.transform='';sendPad();e.preventDefault();});
  zone.addEventListener('pointermove',e=>{if(e.pointerId!==sid)return;
   let dx=e.clientX-ox,dy=e.clientY-oy;const d=Math.hypot(dx,dy);if(d>R){dx*=R/d;dy*=R/d;}
   knob.style.transform=`translate(${dx}px,${dy}px)`;
   const d2=Math.hypot(dx,dy)<R*0.15?0:1;
   touch.x=Math.round(d2*dx/R*80);touch.y=Math.round(-d2*dy/R*80);sendPad();});
- const end=e=>{if(e.pointerId!==sid)return;sid=null;stick.style.left=stick.style.top='';stick.classList.remove('on');knob.style.transform='';touch.x=touch.y=0;sendPad();};
- zone.addEventListener('pointerup',end);zone.addEventListener('pointercancel',end);
- for(const b of document.querySelectorAll('#touch .tb')){
+ const end=e=>{if(e.pointerId!==sid)return;stickOff();sendPad();};
+ for(const ev of ['pointerup','pointercancel','lostpointercapture'])zone.addEventListener(ev,end);
+ const offs=[];
+ for(const b of btns){
   const bit=Number(b.dataset.b||0),ty=Number(b.dataset.ty||0);
-  const on=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);b.classList.add('on');touch.b|=bit;tap(bit);if(ty)touch.y=ty;sendPad();};
-  const off=()=>{b.classList.remove('on');touch.b&=~bit;if(ty)touch.y=0;sendPad();};
-  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);
+  const on=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch{}b.classList.add('on');touch.b|=bit;tap(bit);if(ty)touch.y=ty;sendPad();};
+  const off=()=>{if(!b.classList.contains('on'))return;b.classList.remove('on');touch.b&=~bit;if(ty)touch.y=0;sendPad();};
+  offs.push(off);
+  b.addEventListener('pointerdown',on);
+  for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,off);
   b.addEventListener('contextmenu',e=>e.preventDefault());
  }
+ // Safety net: with no finger on the screen nothing is held; leaving the page lets go too.
+ const releaseAll=()=>{if(sid!==null)stickOff();for(const off of offs)off();touch.b=0;sendPad();};
+ const noFingers=e=>{if(!e.touches||e.touches.length===0)releaseAll();};
+ addEventListener('touchend',noFingers,true);addEventListener('touchcancel',noFingers,true);
+ addEventListener('blur',releaseAll);addEventListener('pagehide',releaseAll);addEventListener('orientationchange',releaseAll);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
  $('touch').hidden=false;
 }
 
